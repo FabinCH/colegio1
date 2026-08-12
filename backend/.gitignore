@@ -1,0 +1,5 @@
+# Dependencias (se reinstalan con "npm install", no hace falta subirlas)
+node_modules/
+
+# Variables de entorno (contienen contraseñas y claves secretas)
+.env

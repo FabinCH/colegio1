@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/launchericon-192x192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icons/launchericon-512x512.png" />
+
+    <!-- Viewport y tema -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#1e40af" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="Colegio" />
+
+    <!-- SEO -->
+    <meta name="description" content="Sistema de gestión escolar - Inscripciones, alumnos y reportes" />
+    <meta name="robots" content="noindex, nofollow" />
+
+    <!-- PWA para iOS (Safari) -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Colegio" />
+    <link rel="apple-touch-icon" href="/icons/launchericon-192x192.png" />
+    <link rel="apple-touch-icon" sizes="144x144" href="/icons/launchericon-144x144.png" />
+    <link rel="apple-touch-icon" sizes="96x96" href="/icons/launchericon-96x96.png" />
+
+    <!-- Open Graph (compartir en redes) -->
+    <meta property="og:title" content="Colegio - Sistema de Gestión" />
+    <meta property="og:description" content="Sistema de gestión escolar" />
+    <meta property="og:image" content="/icons/launchericon-512x512.png" />
+    <meta property="og:type" content="website" />
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <title>Colegio - Sistema de Gestión</title>
+
+    <!-- Anti-flash: aplicar tema ANTES de que React cargue -->
+    <script>
+      (function () {
+        var saved = localStorage.getItem('theme');
+        var isDark = saved === 'dark';
+        if (isDark) {
+          document.documentElement.classList.add('dark');
+          document.documentElement.setAttribute('data-theme', 'dark');
+          document.documentElement.style.background = '#0a0f1e';
+        } else {
+          document.documentElement.classList.remove('dark');
+          document.documentElement.setAttribute('data-theme', 'light');
+          document.documentElement.style.background = '#ffffff';
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
