@@ -23,12 +23,12 @@ const { protect, authorize } = require('../middlewares/authMiddleware');
 router.use(protect);
 
 router.route('/')
-  .post(crearMateria)
+  .post(authorize('admin', 'director'), crearMateria)
   .get(obtenerMaterias);
 
 router.route('/:id')
   .get(obtenerMateria)
-  .put(actualizarMateria)
+  .put(authorize('admin', 'director'), actualizarMateria)
   .delete(authorize('admin', 'director'), eliminarMateria);
 
 module.exports = router;

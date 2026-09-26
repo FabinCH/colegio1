@@ -3,6 +3,70 @@
 // ============================================
 
 const Evaluacion = require('../models/Evaluacion');
+const CuadernoPedagogico = require('../models/CuadernoPedagogico');
+const Student = require('../models/Student');
+const { crearYEnviarNotificacion } = require('./notificacionController');
+
+// ── Umbrales de alerta ──────────────────────────────────────
+const UMBRAL_REPROBACION = 51;  // nota < 51 → REPROBADO
+const UMBRAL_PELIGRO     = 65;  // nota < 65 → EN PELIGRO
+
+// ── Helper: Verificar nota y notificar al director ──────────
+// Se ejecuta en background (no bloquea la respuesta al docente)
+async function verificarYNotificar(evaluacion) {
+  try {
+    const total = evaluacion.total;
+
+    // Solo alertar si la nota es baja
+    if (total >= UMBRAL_PELIGRO) return;
+
+    // Obtener datos del estudiante y cuaderno para el mensaje
+    const [estudiante, cuaderno] = await Promise.all([
+      Student.findById(evaluacion.estudiante).select('nombres apellidos').lean(),
+      CuadernoPedagogico.findById(evaluacion.cuaderno)
+        .populate('curso', 'grado paralelo nivel turno')
+        .populate('materia', 'nombre')
+        .select('curso materia')
+        .lean(),
+    ]);
+
+    if (!estudiante || !cuaderno) return;
+
+    const nombreEstudiante = `${estudiante.nombres} ${estudiante.apellidos}`.trim();
+    const materia = cuaderno.materia?.nombre || 'Materia desconocida';
+    const curso = cuaderno.curso
+      ? [cuaderno.curso.grado, cuaderno.curso.paralelo, cuaderno.curso.nivel].filter(Boolean).join(' ')
+      : 'Curso desconocido';
+    const trimestre = evaluacion.trimestre;
+
+    const esReprobado = total < UMBRAL_REPROBACION;
+
+    await crearYEnviarNotificacion({
+      tipo: esReprobado ? 'alerta_evaluacion' : 'alerta_prediccion',
+      titulo: esReprobado
+        ? `🚨 Alumno reprobado — ${materia}`
+        : `⚠️ Alumno en peligro — ${materia}`,
+      mensaje: esReprobado
+        ? `${nombreEstudiante} obtuvo ${total}/100 en ${materia} (Trim. ${trimestre}) — Curso: ${curso}. Requiere atención inmediata.`
+        : `${nombreEstudiante} obtuvo ${total}/100 en ${materia} (Trim. ${trimestre}) — Curso: ${curso}. En riesgo de reprobación.`,
+      prioridad: esReprobado ? 'critica' : 'alta',
+      datos: {
+        estudianteId: String(evaluacion.estudiante),
+        cuadernoId:   String(evaluacion.cuaderno),
+        nota:         total,
+        trimestre,
+        materia,
+        curso,
+        url: '/director',
+      },
+    });
+
+    console.log(`[ALERTA] Notificación enviada: ${nombreEstudiante} → ${total}/100 en ${materia}`);
+  } catch (error) {
+    // No fallar silenciosamente, pero no interrumpir el flujo principal
+    console.error('[ALERTA] Error al enviar notificación de nota baja:', error.message);
+  }
+}
 
 // REGISTRAR evaluación de un estudiante — POST /api/evaluaciones
 const registrarEvaluacion = async (req, res) => {
@@ -19,6 +83,9 @@ const registrarEvaluacion = async (req, res) => {
       autoevaluacion: autoevaluacion || 0,
       observaciones,
     });
+
+    // Enviar alerta al director si la nota es baja (en background)
+    verificarYNotificar(evaluacion).catch(() => {});
 
     res.status(201).json({
       exito: true,
@@ -71,6 +138,12 @@ const registrarEvaluacionesLote = async (req, res) => {
         errores.push({ estudiante: item.estudiante, error: err.message });
       }
     }
+
+    // Verificar todas las evaluaciones en background y notificar al director
+    const alertasEnBackground = resultados.map((ev) =>
+      verificarYNotificar(ev).catch(() => {})
+    );
+    Promise.allSettled(alertasEnBackground).catch(() => {});
 
     res.status(201).json({
       exito: true,
@@ -181,6 +254,9 @@ const actualizarEvaluacion = async (req, res) => {
 
     // El total se recalcula automáticamente en el pre-save
     await evaluacion.save();
+
+    // Verificar si la nota actualizada es baja y notificar
+    verificarYNotificar(evaluacion).catch(() => {});
 
     res.json({
       exito: true,

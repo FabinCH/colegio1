@@ -68,15 +68,26 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
       if (cachedResponse) return cachedResponse;
-      return fetch(request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200) {
-          const responseClone = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, responseClone);
-          });
-        }
-        return networkResponse;
-      });
+      return fetch(request)
+        .then((networkResponse) => {
+          // Solo cachear si es una respuesta válida (no error, no opaca)
+          if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(request, responseClone);
+            });
+          }
+          return networkResponse;
+        })
+        .catch(async (error) => {
+          // Fallback para SPA: si es una navegación y falla la red, servir index.html
+          if (request.mode === 'navigate') {
+            const cache = await caches.open(CACHE_NAME);
+            const cachedIndex = await cache.match('/index.html');
+            if (cachedIndex) return cachedIndex;
+          }
+          throw error;
+        });
     })
   );
 });

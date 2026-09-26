@@ -7,39 +7,30 @@ import { useAuth } from '../context/AuthContext';
 
 // Secciones SIN filtro por roles (el filtro se aplica en el render)
 const menuSections = [
-  {
-    label: 'Principal',
-    items: [
-      { path: '/dashboard',    label: 'Dashboard',    icon: '📊' },
-    ],
-  },
-  {
-    label: 'Gestión',
-    items: [
-      { path: '/estudiantes',  label: 'Estudiantes',  icon: '👨‍🎓' },
-      { path: '/materias',     label: 'Materias',     icon: '📚' },
-      { path: '/cursos',       label: 'Cursos',       icon: '🏫' },
-      { path: '/cuadernos',    label: 'Cuadernos',    icon: '📋' },
-    ],
-  },
-  {
-    label: 'Pedagógico',
-    items: [
-      { path: '/asistencia',   label: 'Asistencia',   icon: '✅' },
-      { path: '/evaluaciones', label: 'Evaluaciones', icon: '📝' },
-      { path: '/reportes',     label: 'Reportes',     icon: '📈' },
-    ],
-  },
-  {
-    label: 'Inteligencia',
-    soloRoles: ['admin', 'director'],  // oculto para docentes
-    items: [
-      { path: '/predicciones', label: 'Predicciones ML', icon: '🤖' },
-    ],
-  },
+  { label: 'Inicio', items: [
+    { path: '/dashboard', label: 'Resumen general', icon: '📊' },
+  ] },
+  { label: 'Gestión académica', items: [
+    { path: '/cursos', label: 'Cursos', icon: '🏫' },
+    { path: '/materias', label: 'Materias', icon: '📚' },
+    { path: '/estudiantes', label: 'Estudiantes', icon: '👨‍🎓' },
+  ] },
+  { label: 'Trabajo docente', items: [
+    { path: '/cuadernos', label: 'Cuadernos', icon: '📋' },
+    { path: '/asistencia', label: 'Asistencia', icon: '✅' },
+    { path: '/evaluaciones', label: 'Evaluaciones', icon: '📝' },
+  ] },
+  { label: 'Seguimiento', items: [
+    { path: '/reportes', label: 'Reportes', icon: '📈' },
+    { path: '/predicciones', label: 'Predicciones', icon: '🤖', soloRoles: ['admin', 'director'] },
+  ] },
+  { label: 'Administración', items: [
+    { path: '/director', label: 'Dirección', icon: '🏫', soloRoles: ['admin', 'director'] },
+    { path: '/admin', label: 'Administración', icon: '🛡️', soloRoles: ['admin'] },
+  ] },
 ];
 
-const Sidebar = ({ collapsed }) => {
+const Sidebar = ({ collapsed, mobileOpen, onNavigate }) => {
   const { usuario, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -64,15 +55,15 @@ const Sidebar = ({ collapsed }) => {
   const rolActual = String(usuario?.rol || rolDesdeToken || '').toLowerCase().trim();
 
   // Filtrar secciones según el rol
-  const seccionesVisibles = menuSections.filter((section) => {
-    if (!section.soloRoles) return true;          // sin restricción → siempre visible
-    return section.soloRoles.includes(rolActual); // con restricción → verificar rol
-  });
+  const seccionesVisibles = menuSections.map((section) => ({
+    ...section,
+    items: section.items.filter((item) => !item.soloRoles || item.soloRoles.includes(rolActual)),
+  })).filter((section) => section.items.length > 0);
 
   return (
-    <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
+    <aside id="main-sidebar" className={`sidebar ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'mobile-open' : ''}`}>
       {/* Navegación por secciones */}
-      <nav className="sidebar-nav">
+      <nav className="sidebar-nav" aria-label="Navegación principal">
         {seccionesVisibles.map((section) => (
           <div key={section.label}>
             <div className="sidebar-section-label">{section.label}</div>
@@ -80,6 +71,8 @@ const Sidebar = ({ collapsed }) => {
               <NavLink
                 key={item.path}
                 to={item.path}
+                onClick={onNavigate}
+                aria-label={item.label}
                 title={collapsed ? item.label : ''}
                 className={({ isActive }) =>
                   `sidebar-link ${isActive ? 'sidebar-link-active' : ''}`
@@ -88,7 +81,7 @@ const Sidebar = ({ collapsed }) => {
                 <span className="sidebar-link-icon">{item.icon}</span>
                 <span className="sidebar-link-text">{item.label}</span>
                 {/* Tooltip visible solo cuando está colapsado */}
-                <span className="sidebar-link-tooltip">{item.icon} {item.label}</span>
+                <span className="sidebar-link-tooltip" aria-hidden="true">{item.icon} {item.label}</span>
               </NavLink>
             ))}
           </div>

@@ -4,9 +4,12 @@
 
 import { useState, useEffect, useRef } from 'react';
 import API from '../api/axiosConfig';
+import { useAuth } from '../context/AuthContext';
 
 const Materias = () => {
+  const { usuario } = useAuth();
   const [materias, setMaterias] = useState([]);
+  const [docentes, setDocentes] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [materiaActual, setMateriaActual] = useState(null);
@@ -16,6 +19,7 @@ const Materias = () => {
     area: '',
     nivel: 'secundaria',
     grado: '1ro',
+    docenteAsignado: '',
   });
 
   // ─── Estado para el modal de inscripción ───
@@ -45,7 +49,7 @@ const Materias = () => {
     try {
       setCargando(true);
       const { data } = await API.get('/materias');
-      setMaterias(data.data);
+      setMaterias(data.data || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -53,7 +57,20 @@ const Materias = () => {
     }
   };
 
-  useEffect(() => { cargarMaterias(); }, []);
+  const cargarDocentes = async () => {
+    if (usuario?.rol === 'docente') return;
+    try {
+      const { data } = await API.get('/admin/usuarios?rol=docente');
+      setDocentes(data.data || []);
+    } catch (err) {
+      console.error('Error al cargar docentes', err);
+    }
+  };
+
+  useEffect(() => {
+    cargarMaterias();
+    cargarDocentes();
+  }, [usuario]);
 
   // Filtrar estudiantes por búsqueda
   useEffect(() => {
@@ -94,10 +111,16 @@ const Materias = () => {
   const abrirModal = (materia = null) => {
     if (materia) {
       setMateriaActual(materia);
-      setFormData({ nombre: materia.nombre, area: materia.area, nivel: materia.nivel, grado: materia.grado });
+      setFormData({
+        nombre: materia.nombre,
+        area: materia.area || '',
+        nivel: materia.nivel,
+        grado: materia.grado,
+        docenteAsignado: materia.docenteAsignado?._id || '',
+      });
     } else {
       setMateriaActual(null);
-      setFormData({ nombre: '', area: '', nivel: 'secundaria', grado: '1ro' });
+      setFormData({ nombre: '', area: '', nivel: 'secundaria', grado: '1ro', docenteAsignado: '' });
     }
     setMostrarModal(true);
   };
@@ -203,9 +226,11 @@ const Materias = () => {
           <h1 className="page-title">Materias</h1>
           <p className="page-subtitle">Catálogo de asignaturas por nivel y grado</p>
         </div>
-        <button onClick={() => abrirModal()} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2">
-          ➕ Nueva Materia
-        </button>
+        {usuario?.rol !== 'docente' && (
+          <button onClick={() => abrirModal()} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2">
+            ➕ Nueva Materia
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -215,12 +240,17 @@ const Materias = () => {
           <div key={materia._id} className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 hover:border-blue-300 transition-colors group flex flex-col">
             <div className="flex justify-between items-start mb-2">
               <h3 className="font-bold text-lg text-slate-800">{materia.nombre}</h3>
-              <div className="flex opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onClick={() => abrirModal(materia)} className="text-slate-400 hover:text-blue-600 p-1">✏️</button>
-                <button onClick={() => eliminarMateria(materia._id)} className="text-slate-400 hover:text-red-600 p-1">🗑️</button>
-              </div>
+              {usuario?.rol !== 'docente' && (
+                <div className="flex opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onClick={() => abrirModal(materia)} className="text-slate-400 hover:text-blue-600 p-1">✏️</button>
+                  <button onClick={() => eliminarMateria(materia._id)} className="text-slate-400 hover:text-red-600 p-1">🗑️</button>
+                </div>
+              )}
             </div>
-            <p className="text-sm text-slate-500 mb-3">{materia.area || 'Sin área asignada'}</p>
+            <p className="text-sm text-slate-500 mb-1">{materia.area || 'Sin área asignada'}</p>
+            {materia.docenteAsignado && (
+              <p className="text-xs text-blue-600 font-semibold mb-2">👨‍🏫 {materia.docenteAsignado.nombre}</p>
+            )}
             <div className="flex gap-2 mb-4">
               <span className="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded text-xs font-semibold capitalize">{materia.nivel}</span>
               <span className="bg-slate-100 text-slate-700 px-2.5 py-1 rounded text-xs font-semibold">{materia.grado}</span>
@@ -239,34 +269,61 @@ const Materias = () => {
       {/* ─── Modal Nueva/Editar Materia ─── */}
       {mostrarModal && (
         <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">{materiaActual ? 'Editar' : 'Nueva'} Materia</h2>
+          <div className="bg-white rounded-xl p-6 w-full max-w-lg shadow-2xl">
+            <div className="flex items-center gap-3 mb-5 pb-4 border-b border-slate-100">
+              <span className="text-2xl">📚</span>
+              <h2 className="text-xl font-bold text-slate-800">{materiaActual ? 'Editar' : 'Nueva'} Materia</h2>
+            </div>
             <form onSubmit={handleSubmit} className="space-y-4">
+
+              {/* ── Docente (solo admin/director) ── */}
+              {usuario?.rol !== 'docente' && (
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">
+                    👨‍🏫 Docente Asignado
+                  </label>
+                  <select
+                    name="docenteAsignado"
+                    value={formData.docenteAsignado}
+                    onChange={handleChange}
+                    className="w-full border border-slate-200 p-2.5 rounded-lg bg-slate-50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-slate-800"
+                  >
+                    <option value="">— Sin docente asignado —</option>
+                    {docentes.map(d => (
+                      <option key={d._id} value={d._id}>{d.nombre} ({d.email})</option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-slate-400 mt-1">El docente verá esta materia al crear su cuaderno pedagógico.</p>
+                </div>
+              )}
+
               <div>
-                <label className="block text-sm font-medium mb-1">Nombre</label>
-                <input required name="nombre" value={formData.nombre} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Ej: Matemáticas" />
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Nombre <span className="text-red-500">*</span></label>
+                <input required name="nombre" value={formData.nombre} onChange={handleChange} className="w-full border border-slate-200 p-2.5 rounded-lg bg-slate-50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none" placeholder="Ej: Matemáticas" />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Área</label>
-                <input name="area" value={formData.area} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Ej: Ciencia y Tecnología" />
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Área</label>
+                <input name="area" value={formData.area} onChange={handleChange} className="w-full border border-slate-200 p-2.5 rounded-lg bg-slate-50 outline-none" placeholder="Ej: Ciencia y Tecnología" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Nivel</label>
-                  <select name="nivel" value={formData.nivel} onChange={handleChange} className="w-full border p-2 rounded">
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Nivel</label>
+                  <select name="nivel" value={formData.nivel} onChange={handleChange} className="w-full border border-slate-200 p-2.5 rounded-lg bg-slate-50 outline-none">
                     <option value="inicial">Inicial</option>
                     <option value="primaria">Primaria</option>
                     <option value="secundaria">Secundaria</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Grado</label>
-                  <input required name="grado" value={formData.grado} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Ej: 4to" />
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Grado <span className="text-red-500">*</span></label>
+                  <input required name="grado" value={formData.grado} onChange={handleChange} className="w-full border border-slate-200 p-2.5 rounded-lg bg-slate-50 outline-none" placeholder="Ej: 4to" />
                 </div>
               </div>
-              <div className="flex justify-end gap-2 mt-6">
-                <button type="button" onClick={() => setMostrarModal(false)} className="px-4 py-2 bg-slate-100 rounded">Cancelar</button>
-                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">Guardar</button>
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                <button type="button" onClick={() => setMostrarModal(false)} className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">Cancelar</button>
+                <button type="submit" className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm transition-colors">
+                  {materiaActual ? '💾 Guardar Cambios' : '➕ Crear Materia'}
+                </button>
               </div>
             </form>
           </div>

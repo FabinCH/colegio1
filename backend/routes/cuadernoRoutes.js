@@ -28,7 +28,7 @@ router.route('/')
 
 router.route('/:id')
   .get(obtenerCuaderno)
-  .put(actualizarCuaderno)
+  .put(authorize('admin', 'director'), actualizarCuaderno)
   .delete(authorize('admin', 'director', 'docente'), eliminarCuaderno);
 
 module.exports = router;

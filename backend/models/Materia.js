@@ -40,6 +40,12 @@ const materiaSchema = new mongoose.Schema(
       trim: true,
       // Ejemplos: "1ro", "2do", "3ro", "4to", "5to", "6to"
     },
+    // Docente asignado a esta materia (opcional, asignado por el admin)
+    docenteAsignado: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
   },
   {
     timestamps: true,

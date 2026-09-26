@@ -24,12 +24,12 @@ const { protect, authorize } = require('../middlewares/authMiddleware');
 router.use(protect);
 
 router.route('/')
-  .post(crearEstudiante)
+  .post(authorize('admin', 'director'), crearEstudiante)
   .get(obtenerEstudiantes);
 
 router.route('/:id')
   .get(obtenerEstudiante)
-  .put(actualizarEstudiante)
+  .put(authorize('admin', 'director'), actualizarEstudiante)
   .delete(authorize('admin', 'director'), eliminarEstudiante);
 
 module.exports = router;

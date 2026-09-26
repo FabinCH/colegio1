@@ -9,14 +9,14 @@
 //   - Enviar push notifications
 //   - Gestionar suscripciones push
 
-const webpush      = require('web-push');
-const Notificacion   = require('../models/Notificacion');
+const webpush = require('web-push');
+const Notificacion = require('../models/Notificacion');
 const PushSubscripcion = require('../models/PushSubscripcion');
-const User           = require('../models/User');
+const User = require('../models/User');
 
 // --- Configurar Web Push ---
 webpush.setVapidDetails(
-  process.env.VAPID_EMAIL   || 'mailto:admin@cuaderno.edu.bo',
+  process.env.VAPID_EMAIL || 'mailto:admin@cuaderno.edu.bo',
   process.env.VAPID_PUBLIC_KEY,
   process.env.VAPID_PRIVATE_KEY
 );
@@ -34,7 +34,7 @@ async function enviarPushAUsuario(usuarioId, payload) {
         endpoint: sub.endpoint,
         keys: {
           p256dh: sub.keys.p256dh,
-          auth:   sub.keys.auth,
+          auth: sub.keys.auth,
         },
       };
       try {
@@ -61,13 +61,13 @@ async function enviarPushAUsuario(usuarioId, payload) {
 // Usado desde otros controllers (asistencia, evaluacion, etc.)
 // ─────────────────────────────────────────────────────────────
 async function crearYEnviarNotificacion({
-  tipo       = 'sistema',
+  tipo = 'sistema',
   titulo,
   mensaje,
-  datos      = {},
-  prioridad  = 'media',
-  remitente  = null,
-  soloRoles  = ['director', 'admin'],
+  datos = {},
+  prioridad = 'media',
+  remitente = null,
+  soloRoles = ['director', 'admin'],
 }) {
   try {
     // Buscar todos los directores y admins
@@ -93,11 +93,11 @@ async function crearYEnviarNotificacion({
     // Enviar push a cada destinatario
     const pushPayload = {
       title: titulo,
-      body:  mensaje,
-      icon:  '/icons/icon-192x192.png',
+      body: mensaje,
+      icon: '/icons/icon-192x192.png',
       badge: '/icons/badge-72x72.png',
-      data:  { tipo, ...datos },
-      tag:   tipo, // agrupa notificaciones del mismo tipo
+      data: { tipo, ...datos },
+      tag: tipo, // agrupa notificaciones del mismo tipo
     };
 
     for (const u of destinatarios) {
@@ -134,9 +134,9 @@ const suscribir = async (req, res) => {
     await PushSubscripcion.findOneAndUpdate(
       { endpoint: subscription.endpoint },
       {
-        usuario:   req.usuario.id,
-        endpoint:  subscription.endpoint,
-        keys:      subscription.keys,
+        usuario: req.usuario.id,
+        endpoint: subscription.endpoint,
+        keys: subscription.keys,
         userAgent: req.headers['user-agent'] || '',
       },
       { upsert: true, new: true }
@@ -291,9 +291,9 @@ const eliminar = async (req, res) => {
 const enviarPrueba = async (req, res) => {
   try {
     await crearYEnviarNotificacion({
-      tipo:     'sistema',
-      titulo:   '🔔 Notificaciones Activas',
-      mensaje:  'Las notificaciones push están funcionando correctamente en el sistema.',
+      tipo: 'sistema',
+      titulo: '🔔 Notificaciones Activas',
+      mensaje: 'Las notificaciones push están funcionando correctamente en el sistema.',
       prioridad: 'baja',
       remitente: req.usuario.id,
     });

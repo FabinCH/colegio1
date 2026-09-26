@@ -15,8 +15,10 @@ const Layout = () => {
   // Colapsar automáticamente en pantallas pequeñas
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 768) {
+      if (window.innerWidth <= 768) {
         setCollapsed(false); // en móvil usamos slide, no collapse
+      } else {
+        setMobileOpen(false);
       }
     };
     handleResize();
@@ -24,8 +26,17 @@ const Layout = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') setMobileOpen(false);
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [mobileOpen]);
+
   const handleToggleSidebar = () => {
-    if (window.innerWidth < 768) {
+    if (window.innerWidth <= 768) {
       setMobileOpen((prev) => !prev);
     } else {
       setCollapsed((prev) => !prev);
@@ -54,7 +65,7 @@ const Layout = () => {
         )}
 
         {/* Sidebar */}
-        <Sidebar collapsed={collapsed} />
+        <Sidebar collapsed={collapsed} mobileOpen={mobileOpen} onNavigate={() => setMobileOpen(false)} />
 
         {/* Área de contenido + footer */}
         <div className="main-content">

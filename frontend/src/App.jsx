@@ -22,6 +22,8 @@ import Asistencia from './pages/Asistencia';
 import Evaluaciones from './pages/Evaluaciones';
 import Reportes from './pages/Reportes';
 import Predicciones from './pages/Predicciones';
+import AdminPanel from './pages/AdminPanel';
+import DirectorPanel from './pages/DirectorPanel';
 
 function App() {
   return (
@@ -46,6 +48,8 @@ function App() {
                 <Route path="/evaluaciones" element={<Evaluaciones />} />
                 <Route path="/reportes"     element={<Reportes />} />
                 <Route path="/predicciones" element={<Predicciones />} />
+                <Route path="/admin"        element={<AdminPanel />} />
+                <Route path="/director"     element={<DirectorPanel />} />
               </Route>
 
               {/* Ruta por defecto */}

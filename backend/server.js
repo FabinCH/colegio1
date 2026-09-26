@@ -82,9 +82,13 @@ app.use('/api/cuadernos', require('./routes/cuadernoRoutes'));
 app.use('/api/asistencia', require('./routes/asistenciaRoutes'));
 app.use('/api/evaluaciones', require('./routes/evaluacionRoutes'));
 app.use('/api/inscripciones', require('./routes/inscripcionRoutes'));
+app.use('/api/director', require('./routes/directorRoutes'));
 
 // Módulo de Machine Learning (solo admin y director)
 app.use('/api/ml', require('./routes/mlRoutes'));
+
+// Panel de Administración (solo admin)
+app.use('/api/admin', require('./routes/adminRoutes'));
 
 // Sistema de Notificaciones Push
 app.use('/api/notificaciones', require('./routes/notificacionRoutes'));

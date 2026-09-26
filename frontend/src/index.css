@@ -1042,6 +1042,32 @@
     gap: 0.3rem;
   }
 
+  /* Input base — para formularios del panel de administración */
+  .input-base {
+    width: 100%;
+    padding: 0.65rem 0.9rem;
+    background: var(--input-bg);
+    border: 1.5px solid var(--input-border);
+    border-radius: 10px;
+    font-size: 0.875rem;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    color: var(--text-primary);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+  }
+
+  .input-base:focus {
+    border-color: var(--blue-500);
+    background: var(--bg-secondary);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.10);
+  }
+
+  .input-base::placeholder {
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
   .form-select {
     cursor: pointer;
     appearance: none;

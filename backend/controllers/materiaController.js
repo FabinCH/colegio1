@@ -29,16 +29,29 @@ const crearMateria = async (req, res) => {
   }
 };
 
+const CuadernoPedagogico = require('../models/CuadernoPedagogico');
+
 // OBTENER todas las materias — GET /api/materias
 const obtenerMaterias = async (req, res) => {
   try {
-    // Filtrar por nivel y/o grado si se envían como query params
-    // Ejemplo: GET /api/materias?nivel=secundaria&grado=4to
     const filtro = {};
     if (req.query.nivel) filtro.nivel = req.query.nivel;
     if (req.query.grado) filtro.grado = req.query.grado;
 
-    const materias = await Materia.find(filtro).sort({ nombre: 1 });
+    // Si es docente, ve materias asignadas directamente O en sus cuadernos pedagógicos
+    if (req.usuario.rol === 'docente') {
+      const cuadernos = await CuadernoPedagogico.find({ docente: req.usuario.id }).select('materia');
+      const materiaIdsFromCuadernos = cuadernos.map(c => c.materia).filter(Boolean);
+
+      filtro.$or = [
+        { docenteAsignado: req.usuario.id },
+        { _id: { $in: materiaIdsFromCuadernos } }
+      ];
+    }
+
+    const materias = await Materia.find(filtro)
+      .populate('docenteAsignado', 'nombre email')
+      .sort({ nombre: 1 });
     res.json({ exito: true, cantidad: materias.length, data: materias });
   } catch (error) {
     console.error('Error en obtenerMaterias:', error);
@@ -49,7 +62,8 @@ const obtenerMaterias = async (req, res) => {
 // OBTENER una materia por ID — GET /api/materias/:id
 const obtenerMateria = async (req, res) => {
   try {
-    const materia = await Materia.findById(req.params.id);
+    const materia = await Materia.findById(req.params.id)
+      .populate('docenteAsignado', 'nombre email');
     if (!materia) {
       return res.status(404).json({ exito: false, mensaje: 'Materia no encontrada' });
     }

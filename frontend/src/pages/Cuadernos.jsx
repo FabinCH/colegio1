@@ -27,8 +27,10 @@ const Cuadernos = () => {
   const [cursos, setCursos] = useState([]);
   const [materias, setMaterias] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const [docentes, setDocentes] = useState([]);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [mostrarPreview, setMostrarPreview] = useState(null); // ID del cuaderno para preview
+  const [cuadernoActual, setCuadernoActual] = useState(null); // Para saber cuál estamos editando
   
   const [formData, setFormData] = useState({
     departamento: 'La Paz',
@@ -40,6 +42,16 @@ const Cuadernos = () => {
     nivel: 'secundaria',
     gestion: new Date().getFullYear(),
   });
+
+  // Fetch docentes when modal opens (if not docente)
+  const cargarDocentes = async () => {
+    try {
+      const { data } = await API.get('/admin/usuarios?rol=docente');
+      setDocentes(data.data);
+    } catch (err) {
+      console.error('Error al cargar docentes', err);
+    }
+  };
 
   const cargarDatos = async () => {
     try {
@@ -76,24 +88,43 @@ const Cuadernos = () => {
     }
   };
 
-  const abrirModal = () => {
-    setFormData({
-      departamento: 'La Paz',
-      distritoEducativo: '',
-      unidadEducativa: '',
-      director: '',
-      curso: '',
-      materia: '',
-      nivel: 'secundaria',
-      gestion: new Date().getFullYear(),
-    });
+  const abrirModal = (cuad = null) => {
+    if (cuad) {
+      setCuadernoActual(cuad);
+      setFormData({
+        departamento: cuad.departamento || 'La Paz',
+        distritoEducativo: cuad.distritoEducativo || '',
+        unidadEducativa: cuad.unidadEducativa || '',
+        director: cuad.director || '',
+        curso: cuad.curso?._id || cuad.curso || '',
+        materia: cuad.materia?._id || cuad.materia || '',
+        nivel: cuad.nivel || 'secundaria',
+        gestion: cuad.gestion || new Date().getFullYear(),
+      });
+    } else {
+      setCuadernoActual(null);
+      setFormData({
+        departamento: 'La Paz',
+        distritoEducativo: '',
+        unidadEducativa: '',
+        director: '',
+        curso: '',
+        materia: '',
+        nivel: 'secundaria',
+        gestion: new Date().getFullYear(),
+      });
+    }
     setMostrarModal(true);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await API.post('/cuadernos', formData);
+      if (cuadernoActual) {
+        await API.put(`/cuadernos/${cuadernoActual._id}`, formData);
+      } else {
+        await API.post('/cuadernos', formData);
+      }
       setMostrarModal(false);
       cargarDatos();
     } catch (err) {
@@ -124,7 +155,7 @@ const Cuadernos = () => {
           <h1 className="page-title">Mis Cuadernos</h1>
           <p className="page-subtitle">Gestión de Cuadernos Pedagógicos — Carátulas Institucionales</p>
         </div>
-        <button onClick={abrirModal} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">
+        <button onClick={() => abrirModal()} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">
           ➕ Nuevo Cuaderno
         </button>
       </div>
@@ -147,6 +178,7 @@ const Cuadernos = () => {
               </div>
               <div className="flex gap-1">
                 <button onClick={() => setMostrarPreview(mostrarPreview === cuad._id ? null : cuad._id)} className="text-indigo-500 hover:bg-indigo-50 p-2 rounded-lg" title="Vista previa de carátula">👁️</button>
+                <button onClick={() => abrirModal(cuad)} className="text-blue-500 hover:bg-blue-50 p-2 rounded-lg" title="Editar">✏️</button>
                 <button onClick={() => eliminarCuaderno(cuad._id)} className="text-red-500 hover:bg-red-50 p-2 rounded-lg" title="Eliminar">🗑️</button>
               </div>
             </div>
@@ -205,7 +237,7 @@ const Cuadernos = () => {
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl overflow-hidden max-h-[90vh] flex flex-col">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-              <h2 className="text-xl font-bold text-slate-800">Crear Cuaderno Pedagógico</h2>
+              <h2 className="text-xl font-bold text-slate-800">{cuadernoActual ? 'Editar' : 'Crear'} Cuaderno Pedagógico</h2>
               <button onClick={() => setMostrarModal(false)} className="text-slate-400 hover:text-slate-600 text-xl">✕</button>
             </div>
 
@@ -284,7 +316,7 @@ const Cuadernos = () => {
 
                 <div className="flex justify-end gap-2 mt-6 pt-4 border-t border-slate-100">
                   <button type="button" onClick={() => setMostrarModal(false)} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">Cancelar</button>
-                  <button type="submit" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm transition-colors">Crear Cuaderno</button>
+                  <button type="submit" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm transition-colors">{cuadernoActual ? 'Guardar Cambios' : 'Crear Cuaderno'}</button>
                 </div>
               </form>
 

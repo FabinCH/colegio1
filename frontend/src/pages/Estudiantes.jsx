@@ -6,8 +6,10 @@
 
 import { useState, useEffect } from 'react';
 import API from '../api/axiosConfig';
+import { useAuth } from '../context/AuthContext';
 
 const Estudiantes = () => {
+  const { usuario } = useAuth();
   const [estudiantes, setEstudiantes] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
@@ -153,9 +155,11 @@ const Estudiantes = () => {
           <h1 className="page-title">Estudiantes</h1>
           <p className="page-subtitle">Gestión del registro de estudiantes (RUDE)</p>
         </div>
-        <button onClick={abrirModalNuevo} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm flex items-center gap-2">
-          <span>➕</span> Nuevo Estudiante
-        </button>
+        {usuario?.rol !== 'docente' && (
+          <button onClick={abrirModalNuevo} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm flex items-center gap-2">
+            <span>➕</span> Nuevo Estudiante
+          </button>
+        )}
       </div>
 
       {/* Barra de búsqueda por CI o RUDE */}
@@ -202,14 +206,16 @@ const Estudiantes = () => {
                 <th className="p-4 font-semibold">CI</th>
                 <th className="p-4 font-semibold">Sexo</th>
                 <th className="p-4 font-semibold">Apoderado</th>
-                <th className="p-4 font-semibold text-right">Acciones</th>
+                {usuario?.rol !== 'docente' && (
+                  <th className="p-4 font-semibold text-right">Acciones</th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {cargando ? (
-                <tr><td colSpan="6" className="p-8 text-center text-slate-500">Cargando datos...</td></tr>
+                <tr><td colSpan={usuario?.rol !== 'docente' ? "6" : "5"} className="p-8 text-center text-slate-500">Cargando datos...</td></tr>
               ) : estudiantes.length === 0 ? (
-                <tr><td colSpan="6" className="p-8 text-center text-slate-500">
+                <tr><td colSpan={usuario?.rol !== 'docente' ? "6" : "5"} className="p-8 text-center text-slate-500">
                   {busqueda ? 'No se encontraron estudiantes con ese criterio' : 'No hay estudiantes registrados'}
                 </td></tr>
               ) : (
@@ -228,10 +234,12 @@ const Estudiantes = () => {
                     <td className="p-4 text-slate-600 text-sm">
                       {est.apoderado?.nombreCompleto || <span className="text-slate-400 italic">Sin apoderado</span>}
                     </td>
-                    <td className="p-4 text-right">
-                      <button onClick={() => abrirModalEditar(est)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg mr-2" title="Editar">✏️</button>
-                      <button onClick={() => eliminarEstudiante(est._id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg" title="Eliminar">🗑️</button>
-                    </td>
+                    {usuario?.rol !== 'docente' && (
+                      <td className="p-4 text-right">
+                        <button onClick={() => abrirModalEditar(est)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg mr-2" title="Editar">✏️</button>
+                        <button onClick={() => eliminarEstudiante(est._id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg" title="Eliminar">🗑️</button>
+                      </td>
+                    )}
                   </tr>
                 ))
               )}

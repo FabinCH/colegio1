@@ -7,10 +7,15 @@ const Curso = require('../models/Curso');
 // CREAR curso — POST /api/cursos
 const crearCurso = async (req, res) => {
   try {
-    const curso = await Curso.create({
-      ...req.body,
-      docente: req.body.docente || req.usuario.id,
-    });
+    const payload = { ...req.body };
+    if (!payload.docente || payload.docente === '') {
+      delete payload.docente;
+      if (req.usuario.rol === 'docente') {
+        payload.docente = req.usuario.id;
+      }
+    }
+
+    const curso = await Curso.create(payload);
 
     res.status(201).json({
       exito: true,
@@ -33,6 +38,8 @@ const crearCurso = async (req, res) => {
   }
 };
 
+const CuadernoPedagogico = require('../models/CuadernoPedagogico');
+
 // OBTENER todos los cursos — GET /api/cursos
 const obtenerCursos = async (req, res) => {
   try {
@@ -40,6 +47,17 @@ const obtenerCursos = async (req, res) => {
     if (req.query.gestion) filtro.gestion = req.query.gestion;
     if (req.query.nivel) filtro.nivel = req.query.nivel;
     if (req.query.docente) filtro.docente = req.query.docente;
+
+    // Si es docente, ve los cursos asignados a él directamente O en sus cuadernos pedagógicos
+    if (req.usuario.rol === 'docente') {
+      const cuadernos = await CuadernoPedagogico.find({ docente: req.usuario.id }).select('curso');
+      const cursoIdsFromCuadernos = cuadernos.map(c => c.curso).filter(Boolean);
+
+      filtro.$or = [
+        { docente: req.usuario.id },
+        { _id: { $in: cursoIdsFromCuadernos } }
+      ];
+    }
 
     const cursos = await Curso.find(filtro)
       .populate('docente', 'nombre email') // Trae nombre y email del docente
@@ -73,10 +91,14 @@ const obtenerCurso = async (req, res) => {
 // ACTUALIZAR curso — PUT /api/cursos/:id
 const actualizarCurso = async (req, res) => {
   try {
-    const curso = await Curso.findByIdAndUpdate(req.params.id, req.body, {
+    const payload = { ...req.body };
+    if (payload.docente === '') {
+      payload.docente = null;
+    }
+    const curso = await Curso.findByIdAndUpdate(req.params.id, payload, {
       new: true,
       runValidators: true,
-    });
+    }).populate('docente', 'nombre email');
     if (!curso) {
       return res.status(404).json({ exito: false, mensaje: 'Curso no encontrado' });
     }

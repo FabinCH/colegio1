@@ -103,7 +103,7 @@ async function calcularPredicciones(filtros = {}) {
   if (filtros.trimestre) evalQuery.trimestre = parseInt(filtros.trimestre);
 
   // ── Cargar evaluaciones ───────────────────────────────────
-  const evaluaciones = await Evaluacion.find(evalQuery)
+  const evaluaciones = await Evaluacion.find(evalQuery, 'cuaderno trimestre estudiante ser saber hacer autoevaluacion total')
     .populate({
       path: 'cuaderno',
       populate: [
@@ -112,7 +112,8 @@ async function calcularPredicciones(filtros = {}) {
       ],
     })
     .populate('estudiante', '_id nombres apellidos rude')
-    .lean();
+    .lean()
+    .exec();
 
   // ── Filtrar por curso/materia si aplica ───────────────────
   const evFiltradas = evaluaciones.filter((ev) => {

@@ -78,7 +78,8 @@ const Header = ({ onToggleSidebar }) => {
         <button
           className="sidebar-toggle"
           onClick={onToggleSidebar}
-          title="Colapsar menú"
+          title="Abrir o cerrar menú"
+          aria-controls="main-sidebar"
           aria-label="Alternar menú lateral"
         >
           ☰

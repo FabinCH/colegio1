@@ -64,6 +64,21 @@ const cuadernoPedagogicoSchema = new mongoose.Schema(
       required: [true, 'La gestión (año) es obligatoria'],
       default: new Date().getFullYear(),
     },
+    // --- DATOS DE SUPERVISIÓN (Director) ---
+    estadoSupervision: {
+      type: String,
+      enum: ['pendiente', 'aprobado', 'rechazado'],
+      default: 'pendiente',
+    },
+    comentarioSupervision: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    fechaSupervision: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

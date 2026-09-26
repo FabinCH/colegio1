@@ -90,6 +90,11 @@ const studentSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
+    // Referencia al curso en el que está matriculado
+    curso: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Curso',
+    },
   },
   {
     timestamps: true,

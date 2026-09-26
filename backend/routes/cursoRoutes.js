@@ -25,12 +25,12 @@ const { protect, authorize } = require('../middlewares/authMiddleware');
 router.use(protect);
 
 router.route('/')
-  .post(crearCurso)
+  .post(authorize('admin', 'director'), crearCurso)
   .get(obtenerCursos);
 
 router.route('/:id')
   .get(obtenerCurso)
-  .put(actualizarCurso)
+  .put(authorize('admin', 'director'), actualizarCurso)
   .delete(authorize('admin', 'director'), eliminarCurso);
 
 // Ruta especial para agregar estudiantes a un curso
