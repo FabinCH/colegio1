@@ -36,10 +36,19 @@ const app = express();
 
 // --- 4. CONFIGURAR MIDDLEWARES ---
 
-// cors() → Permite que el frontend (React en localhost:5173) 
-//          pueda hacer peticiones al backend (localhost:5000)
+// cors() → Permite que el frontend (React en localhost:5173 o Vercel) 
+//          pueda hacer peticiones al backend.
 //          Sin esto, el navegador BLOQUEA las peticiones (política de seguridad).
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'https://colegio1-two.vercel.app',
+    'https://colegio1-git-main-fabian-73d9.vercel.app',
+    /\.vercel\.app$/,  // Permite cualquier subdominio de vercel.app
+  ],
+  credentials: true,
+}));
 
 // express.json() → Permite que el servidor entienda datos en formato JSON
 //                  Cuando el frontend envíe { "nombre": "Juan" }, Express 
