@@ -1,16 +1,8 @@
-// ============================================
-// controllers/inscripcionController.js — Gestión de Inscripciones
-// ============================================
-//
-// RUTAS:
-//   POST   /api/inscripciones              → Inscribir estudiante a un cuaderno
-//   GET    /api/inscripciones?cuaderno=xxx → Obtener inscritos de un cuaderno
-//   DELETE /api/inscripciones/:id          → Eliminar inscripción
+
 
 const Inscripcion = require('../models/Inscripcion');
 const Student = require('../models/Student');
 
-// INSCRIBIR un estudiante a un cuaderno — POST /api/inscripciones
 const inscribirEstudiante = async (req, res) => {
   try {
     const { cuaderno, estudiante } = req.body;
@@ -28,7 +20,6 @@ const inscribirEstudiante = async (req, res) => {
       registradoPor: req.usuario.id,
     });
 
-    // Poblar datos del estudiante para devolverlos
     const inscripcionPoblada = await Inscripcion.findById(inscripcion._id)
       .populate('estudiante', 'nombres apellidos rude ci');
 
@@ -49,7 +40,6 @@ const inscribirEstudiante = async (req, res) => {
   }
 };
 
-// OBTENER inscritos de un cuaderno — GET /api/inscripciones?cuaderno=xxx
 const obtenerInscritos = async (req, res) => {
   try {
     const { cuaderno } = req.query;
@@ -65,7 +55,6 @@ const obtenerInscritos = async (req, res) => {
       .populate('estudiante', 'nombres apellidos rude ci sexo')
       .sort({ 'estudiante.apellidos': 1 });
 
-    // Ordenar por apellidos del estudiante
     const ordenadas = inscripciones.sort((a, b) => {
       const apA = a.estudiante?.apellidos || '';
       const apB = b.estudiante?.apellidos || '';
@@ -83,7 +72,6 @@ const obtenerInscritos = async (req, res) => {
   }
 };
 
-// ELIMINAR inscripción — DELETE /api/inscripciones/:id
 const eliminarInscripcion = async (req, res) => {
   try {
     const inscripcion = await Inscripcion.findByIdAndDelete(req.params.id);

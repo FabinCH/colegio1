@@ -1,8 +1,4 @@
-// ============================================
-// pages/Estudiantes.jsx — Gestión de Estudiantes
-// ============================================
-// Incluye: tabla con búsqueda por CI/RUDE, formulario completo
-// con subformulario de Apoderado (filiación)
+
 
 import { useState, useEffect } from 'react';
 import API from '../api/axiosConfig';
@@ -18,8 +14,7 @@ const Estudiantes = () => {
   const [totalPaginas, setTotalPaginas] = useState(1);
   const [totalEstudiantes, setTotalEstudiantes] = useState(0);
   const LIMITE = 20;
-  
-  // Estado para el modal de formulario
+
   const [mostrarModal, setMostrarModal] = useState(false);
   const [estudianteActual, setEstudianteActual] = useState(null);
   const [formData, setFormData] = useState({
@@ -31,7 +26,7 @@ const Estudiantes = () => {
     fechaNacimiento: '',
     lugarNacimiento: '',
     direccion: '',
-    // Subformulario Apoderado
+    
     apoderado: {
       nombreCompleto: '',
       ci: '',
@@ -40,7 +35,6 @@ const Estudiantes = () => {
     },
   });
 
-  // Cargar estudiantes
   const cargarEstudiantes = async (textoBusqueda = '', pag = 1) => {
     try {
       setCargando(true);
@@ -64,7 +58,6 @@ const Estudiantes = () => {
     cargarEstudiantes();
   }, []);
 
-  // Búsqueda con debounce — resetea a página 1
   useEffect(() => {
     const timer = setTimeout(() => {
       cargarEstudiantes(busqueda, 1);
@@ -72,10 +65,9 @@ const Estudiantes = () => {
     return () => clearTimeout(timer);
   }, [busqueda]);
 
-  // Manejar formulario
   const handleChange = (e) => {
     const { name, value } = e.target;
-    // Si el campo pertenece al apoderado (formato: apoderado.campo)
+    
     if (name.startsWith('apoderado.')) {
       const campo = name.split('.')[1];
       setFormData(prev => ({
@@ -139,7 +131,7 @@ const Estudiantes = () => {
     if (window.confirm('¿Estás seguro de eliminar este estudiante?')) {
       try {
         await API.delete(`/estudiantes/${id}`);
-        // Si era el último de la página actual, volver a la anterior
+        
         const nuevaPag = estudiantes.length === 1 && pagina > 1 ? pagina - 1 : pagina;
         cargarEstudiantes(busqueda, nuevaPag);
       } catch (err) {
@@ -162,7 +154,7 @@ const Estudiantes = () => {
         )}
       </div>
 
-      {/* Barra de búsqueda por CI o RUDE */}
+      {}
       <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
         <div className="flex items-center gap-3">
           <span className="text-xl">🔍</span>
@@ -195,7 +187,7 @@ const Estudiantes = () => {
         </div>
       )}
 
-      {/* Tabla de Estudiantes */}
+      {}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -248,7 +240,7 @@ const Estudiantes = () => {
         </div>
       </div>
 
-      {/* ─── CONTROLES DE PAGINACIÓN ─── */}
+      {}
       {totalPaginas > 1 && (
         <div className="bg-white px-6 py-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
           <p className="text-sm text-slate-500">
@@ -298,7 +290,7 @@ const Estudiantes = () => {
         </div>
       )}
 
-      {/* Modal Formulario */}
+      {}
       {mostrarModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
@@ -310,7 +302,7 @@ const Estudiantes = () => {
             </div>
             
             <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto flex-1">
-              {/* ─── DATOS DEL ESTUDIANTE ─── */}
+              {}
               <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100 pb-2">
                 👨‍🎓 Datos del Estudiante
               </h3>
@@ -360,7 +352,7 @@ const Estudiantes = () => {
                 <input type="text" name="direccion" value={formData.direccion} onChange={handleChange} className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Ej: Calle Bolívar #123, Zona Central" />
               </div>
 
-              {/* ─── DATOS DEL APODERADO (Subformulario) ─── */}
+              {}
               <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100 pb-2 mt-6">
                 👨‍👧 Datos del Apoderado (Filiación)
               </h3>

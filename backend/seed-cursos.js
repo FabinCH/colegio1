@@ -27,7 +27,6 @@ const seedData = async () => {
       process.exit(1);
     }
 
-    // --- SETUP PARA RAUL ---
     console.log('Creando datos para Raul...');
     let cursoRaul = await Curso.findOne({ grado: '4to', paralelo: 'A', nivel: 'secundaria' });
     if (!cursoRaul) {
@@ -92,7 +91,6 @@ const seedData = async () => {
       });
     }
 
-    // --- SETUP PARA JORGE ---
     console.log('Creando datos para Jorge...');
     let cursoJorge = await Curso.findOne({ grado: '5to', paralelo: 'B', nivel: 'secundaria' });
     if (!cursoJorge) {

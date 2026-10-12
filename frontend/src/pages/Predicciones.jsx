@@ -1,9 +1,4 @@
-// ============================================================
-// frontend/src/pages/Predicciones.jsx
-// ============================================================
-// Página de Predicciones ML para admin y director.
-// Muestra: KPIs, tabla de estudiantes, cards de cursos, gráficos y filtros.
-// ============================================================
+
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -13,7 +8,6 @@ import {
   PieChart, Pie, Cell, RadialBarChart, RadialBar,
 } from 'recharts';
 
-// ── Paleta de colores por riesgo ──────────────────────────────
 const RIESGO_COLOR = {
   alto:  { bg: '#fef2f2', border: '#fca5a5', text: '#dc2626', badge: '#ef4444', dot: '#dc2626' },
   medio: { bg: '#fffbeb', border: '#fcd34d', text: '#d97706', badge: '#f59e0b', dot: '#d97706' },
@@ -21,8 +15,6 @@ const RIESGO_COLOR = {
 };
 
 const RIESGO_LABEL = { alto: 'Alto', medio: 'Medio', bajo: 'Bajo' };
-
-// ── Componentes auxiliares ────────────────────────────────────
 
 function Spinner() {
   return (
@@ -134,7 +126,6 @@ function AlertaBadge({ texto }) {
   );
 }
 
-// ── Tooltip personalizado para recharts ───────────────────────
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
@@ -154,30 +145,25 @@ function CustomTooltip({ active, payload, label }) {
   );
 }
 
-// ── Componente principal ──────────────────────────────────────
 export default function Predicciones() {
-  const location = useLocation(); // detectar navegación a esta página
+  const location = useLocation(); 
   const [cargando, setCargando]   = useState(true);
   const [error, setError]         = useState(null);
   const [resumen, setResumen]     = useState(null);
   const [estudiantes, setEstudiantes] = useState([]);
   const [cursos, setCursos]       = useState([]);
 
-  // Filtros
   const [filtroCurso,     setFiltroCurso]     = useState('');
   const [filtroMateria,   setFiltroMateria]   = useState('');
   const [filtroTrimestre, setFiltroTrimestre] = useState('');
   const [filtroRiesgo,    setFiltroRiesgo]    = useState('');
   const [busqueda,        setBusqueda]        = useState('');
 
-  // Tabs
-  const [tabActiva, setTabActiva] = useState('resumen'); // 'resumen' | 'estudiantes' | 'cursos'
+  const [tabActiva, setTabActiva] = useState('resumen'); 
 
-  // Paginación tabla
   const [pagina,    setPagina]    = useState(1);
   const POR_PAGINA = 10;
 
-  // ── Cargar datos ────────────────────────────────────────────
   const cargarDatos = useCallback(async () => {
     setCargando(true);
     setError(null);
@@ -203,10 +189,8 @@ export default function Predicciones() {
     }
   }, [filtroCurso, filtroMateria, filtroTrimestre]);
 
-  // Recargar al entrar a la página (soluciona el problema de Ctrl+Shift+R)
   useEffect(() => { cargarDatos(); }, [cargarDatos, location.pathname]);
 
-  // ── Listas únicas para filtros ──────────────────────────────
   const cursosUnicos = useMemo(() =>
     [...new Map(estudiantes.map((e) => [e.curso_id, { id: e.curso_id, nombre: e.curso }]))
       .values()], [estudiantes]);
@@ -215,7 +199,6 @@ export default function Predicciones() {
     [...new Map(estudiantes.map((e) => [e.materia_id, { id: e.materia_id, nombre: e.materia }]))
       .values()], [estudiantes]);
 
-  // ── Estudiantes filtrados ───────────────────────────────────
   const estudiantesFiltrados = useMemo(() => {
     return estudiantes.filter((e) => {
       if (filtroRiesgo && e.riesgo_academico !== filtroRiesgo) return false;
@@ -233,7 +216,6 @@ export default function Predicciones() {
     (pagina - 1) * POR_PAGINA, pagina * POR_PAGINA
   );
 
-  // ── Datos para gráficos ─────────────────────────────────────
   const datosDistribucion = resumen ? [
     { name: 'Riesgo Alto',  value: resumen.riesgo_alto,  fill: '#ef4444' },
     { name: 'Riesgo Medio', value: resumen.riesgo_medio, fill: '#f59e0b' },
@@ -253,10 +235,9 @@ export default function Predicciones() {
     Asistencia: c.resumen?.porcentaje_asistencia_promedio || 0,
   }));
 
-  // ── Render ──────────────────────────────────────────────────
   return (
     <div style={{ padding: '1.5rem', maxWidth: 1400, margin: '0 auto' }}>
-      {/* Encabezado */}
+      {}
       <div style={{ marginBottom: '2rem', display: 'flex', alignItems: 'flex-start',
         justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
@@ -286,7 +267,7 @@ export default function Predicciones() {
         </button>
       </div>
 
-      {/* Filtros */}
+      {}
       <div style={{
         background: '#fff', borderRadius: 14,
         padding: '1.25rem', marginBottom: '1.5rem',
@@ -298,7 +279,7 @@ export default function Predicciones() {
           🔍 Filtros:
         </span>
 
-        {/* Búsqueda */}
+        {}
         <input
           id="filtro-busqueda-ml"
           placeholder="Buscar estudiante o materia..."
@@ -311,7 +292,7 @@ export default function Predicciones() {
           }}
         />
 
-        {/* Curso */}
+        {}
         <select
           id="filtro-curso-ml"
           value={filtroCurso}
@@ -327,7 +308,7 @@ export default function Predicciones() {
           ))}
         </select>
 
-        {/* Materia */}
+        {}
         <select
           id="filtro-materia-ml"
           value={filtroMateria}
@@ -343,7 +324,7 @@ export default function Predicciones() {
           ))}
         </select>
 
-        {/* Trimestre */}
+        {}
         <select
           id="filtro-trimestre-ml"
           value={filtroTrimestre}
@@ -359,7 +340,7 @@ export default function Predicciones() {
           <option value="3">Trimestre 3</option>
         </select>
 
-        {/* Riesgo */}
+        {}
         <select
           id="filtro-riesgo-ml"
           value={filtroRiesgo}
@@ -375,7 +356,7 @@ export default function Predicciones() {
           <option value="bajo">🟢 Bajo</option>
         </select>
 
-        {/* Limpiar */}
+        {}
         {(filtroCurso || filtroMateria || filtroTrimestre || filtroRiesgo || busqueda) && (
           <button
             onClick={() => {
@@ -394,7 +375,7 @@ export default function Predicciones() {
         )}
       </div>
 
-      {/* Tabs */}
+      {}
       <div style={{
         display: 'flex', gap: 4, marginBottom: '1.5rem',
         background: '#f1f5f9', borderRadius: 12, padding: 4,
@@ -424,7 +405,7 @@ export default function Predicciones() {
         ))}
       </div>
 
-      {/* Contenido principal */}
+      {}
       {cargando ? (
         <Spinner />
       ) : error ? (
@@ -444,10 +425,10 @@ export default function Predicciones() {
         </div>
       ) : (
         <>
-          {/* ── TAB RESUMEN ──────────────────────────────────── */}
+          {}
           {tabActiva === 'resumen' && (
             <div>
-              {/* KPI Cards */}
+              {}
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
@@ -503,11 +484,11 @@ export default function Predicciones() {
                 )}
               </div>
 
-              {/* Gráficos */}
+              {}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
                 gap: '1.5rem', marginBottom: '2rem' }}>
 
-                {/* Pie de distribución de riesgo */}
+                {}
                 <div style={{ background: '#fff', borderRadius: 16, padding: '1.5rem',
                   boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
                   <h3 style={{ margin: '0 0 1.25rem', fontSize: '0.95rem',
@@ -535,7 +516,7 @@ export default function Predicciones() {
                   </ResponsiveContainer>
                 </div>
 
-                {/* Barras por curso */}
+                {}
                 {datosCursos.length > 0 && (
                   <div style={{ background: '#fff', borderRadius: 16, padding: '1.5rem',
                     boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
@@ -558,7 +539,7 @@ export default function Predicciones() {
                   </div>
                 )}
 
-                {/* Promedios por curso */}
+                {}
                 {datosPromediosCurso.length > 0 && (
                   <div style={{ background: '#fff', borderRadius: 16, padding: '1.5rem',
                     boxShadow: '0 1px 3px rgba(0,0,0,0.06)', gridColumn: 'span 2' }}>
@@ -583,7 +564,7 @@ export default function Predicciones() {
             </div>
           )}
 
-          {/* ── TAB ESTUDIANTES ───────────────────────────────── */}
+          {}
           {tabActiva === 'estudiantes' && (
             <div style={{ background: '#fff', borderRadius: 16,
               boxShadow: '0 1px 3px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
@@ -696,7 +677,7 @@ export default function Predicciones() {
                     </table>
                   </div>
 
-                  {/* Paginación */}
+                  {}
                   {totalPaginas > 1 && (
                     <div style={{
                       display: 'flex', justifyContent: 'center', alignItems: 'center',
@@ -753,7 +734,7 @@ export default function Predicciones() {
             </div>
           )}
 
-          {/* ── TAB CURSOS ────────────────────────────────────── */}
+          {}
           {tabActiva === 'cursos' && (
             <div>
               {cursos.length === 0 ? (
@@ -791,7 +772,7 @@ export default function Predicciones() {
                         e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)';
                       }}
                       >
-                        {/* Header */}
+                        {}
                         <div style={{
                           background: RIESGO_COLOR[nivelRiesgo].bg,
                           padding: '1rem 1.25rem',
@@ -808,7 +789,7 @@ export default function Predicciones() {
                           <RiesgoBadge riesgo={nivelRiesgo} />
                         </div>
 
-                        {/* Métricas */}
+                        {}
                         <div style={{ padding: '1rem 1.25rem' }}>
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem',
                             marginBottom: '1rem' }}>
@@ -830,7 +811,7 @@ export default function Predicciones() {
                             </div>
                           </div>
 
-                          {/* Barras de riesgo */}
+                          {}
                           <div style={{ marginBottom: '0.75rem' }}>
                             {[
                               { label: 'Alto',  val: c.resumen?.riesgo_alto,  pct: pctAlto,  color: '#ef4444' },
@@ -854,7 +835,7 @@ export default function Predicciones() {
                             ))}
                           </div>
 
-                          {/* Materias con riesgo */}
+                          {}
                           {c.materias_con_mas_riesgo?.length > 0 && (
                             <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem',
                               borderTop: '1px solid #f1f5f9' }}>
@@ -877,7 +858,7 @@ export default function Predicciones() {
                             </div>
                           )}
 
-                          {/* Estudiantes en riesgo */}
+                          {}
                           {c.estudiantes_riesgo?.length > 0 && (
                             <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem',
                               borderTop: '1px solid #f1f5f9' }}>

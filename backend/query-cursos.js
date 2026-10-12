@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const User = require('./models/User'); // Import User so Mongoose knows it
+const User = require('./models/User'); 
 const Curso = require('./models/Curso');
 const Materia = require('./models/Materia');
 const CuadernoPedagogico = require('./models/CuadernoPedagogico');
@@ -11,14 +11,12 @@ async function fixCursos() {
     await mongoose.connect(MONGO_URI);
     console.log('Conectado a MongoDB...');
 
-    // 1. Mostrar qué cursos tenemos
     const cursos = await Curso.find().populate('docente', 'nombre');
     console.log('--- CURSOS EN DB ---');
     for (const c of cursos) {
       console.log(`ID: ${c._id} | Grado: ${c.grado} "${c.paralelo}" (${c.nivel}) | Docente: ${c.docente ? c.docente.nombre : 'Ninguno'}`);
     }
 
-    // 2. Si existe un curso de '6to', ver qué docente lo tiene y en qué cuadernos está
     const sextos = cursos.filter(c => c.grado.toLowerCase().includes('6to'));
     if (sextos.length > 0) {
       for (const sexto of sextos) {

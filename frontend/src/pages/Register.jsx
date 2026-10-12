@@ -1,6 +1,4 @@
-// ============================================
-// pages/Register.jsx — Página de Registro
-// ============================================
+
 
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -27,7 +25,6 @@ const Register = () => {
     e.preventDefault();
     setError('');
 
-    // Validar que las contraseñas coincidan
     if (formData.password !== formData.confirmarPassword) {
       setError('Las contraseñas no coinciden');
       return;
@@ -65,7 +62,7 @@ const Register = () => {
   return (
     <div className="auth-page">
       <div className="auth-container">
-        {/* Panel izquierdo decorativo */}
+        {}
         <div className="auth-banner">
           <div className="auth-banner-content">
             <div className="auth-banner-icon">📋</div>
@@ -83,7 +80,7 @@ const Register = () => {
           </div>
         </div>
 
-        {/* Panel derecho: formulario */}
+        {}
         <div className="auth-form-panel">
           <div className="auth-form-container">
             <h1 className="auth-title">Crear Cuenta</h1>

@@ -1,6 +1,4 @@
-// ============================================
-// pages/DirectorPanel.jsx — Panel del Director
-// ============================================
+
 
 import { useState, useEffect } from 'react';
 import API from '../api/axiosConfig';
@@ -10,7 +8,6 @@ const DirectorPanel = () => {
   const { usuario } = useAuth();
   const [seccion, setSeccion] = useState('reportes');
 
-  // Verificar que es director o admin
   if (usuario?.rol !== 'director' && usuario?.rol !== 'admin') {
     return (
       <div className="page-container flex items-center justify-center min-h-[60vh]">
@@ -53,7 +50,7 @@ const DirectorPanel = () => {
       </div>
 
       <div className="flex gap-6">
-        {/* Menú Lateral */}
+        {}
         <aside className="w-64 flex-shrink-0">
           <nav className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
             {secciones.map(s => (
@@ -71,7 +68,7 @@ const DirectorPanel = () => {
           </nav>
         </aside>
 
-        {/* Contenido Principal */}
+        {}
         <main className="flex-1 min-w-0">
           {seccion === 'reportes'    && <SeccionReportes />}
           {seccion === 'rendimiento' && <SeccionRendimiento />}
@@ -84,10 +81,6 @@ const DirectorPanel = () => {
     </div>
   );
 };
-
-// ═══════════════════════════════════════════════════════════
-// SECCIONES
-// ═══════════════════════════════════════════════════════════
 
 const SeccionReportes = () => {
   const [data, setData] = useState([]);
@@ -306,7 +299,7 @@ const SeccionExportar = () => {
   const handleDownload = async (tipo) => {
     try {
       const res = await API.get(`/director/exportar/${tipo}`);
-      // Crear archivo JSON simulando CSV/Excel
+      
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(res.data.data, null, 2));
       const downloadAnchorNode = document.createElement('a');
       downloadAnchorNode.setAttribute("href", dataStr);

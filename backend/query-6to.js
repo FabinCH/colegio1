@@ -11,7 +11,6 @@ async function fixCursos() {
     await mongoose.connect(MONGO_URI);
     console.log('Conectado a MongoDB...');
 
-    // 1. Mostrar qué cursos tenemos
     const cursos = await Curso.find({ grado: { $regex: /6/i } }).populate('docente', 'nombre email');
     
     for (const sexto of cursos) {
@@ -31,7 +30,6 @@ async function fixCursos() {
         console.log(`  No tiene cuadernos pedagógicos asignados.`);
       }
 
-      // CORREGIR el nombre del curso de 6ro a 6to
       if (sexto.grado === '6ro') {
         sexto.grado = '6to';
         await sexto.save();

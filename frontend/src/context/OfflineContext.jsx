@@ -1,6 +1,4 @@
-// ============================================
-// context/OfflineContext.jsx — Contexto de estado offline
-// ============================================
+
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { iniciarSyncManager, onSyncChange } from '../api/syncManager';
@@ -14,7 +12,7 @@ export function OfflineProvider({ children }) {
   const [syncState, setSyncState] = useState('idle');
   const [syncInfo, setSyncInfo]   = useState({ total: 0, procesados: 0, errores: 0 });
   const [showSyncModal, setShowSyncModal] = useState(false);
-  // Timestamp que cambia cada vez que la sync se completa → componentes pueden reaccionar
+  
   const [syncCompletadoAt, setSyncCompletadoAt] = useState(null);
 
   useEffect(() => {
@@ -36,11 +34,10 @@ export function OfflineProvider({ children }) {
       const count = await contarPendientes();
       setPendientes(count);
 
-      // Mostrar modal cuando empieza a sincronizar
       if (evento.estado === 'sincronizando') {
         setShowSyncModal(true);
       }
-      // Al completar: marcar timestamp para que componentes recarguen datos
+      
       if (evento.estado === 'completado' || evento.estado === 'parcial') {
         setSyncCompletadoAt(Date.now());
         setTimeout(() => {
@@ -63,7 +60,7 @@ export function OfflineProvider({ children }) {
     <OfflineContext.Provider value={{ isOnline, pendientes, syncState, syncCompletadoAt }}>
       {children}
 
-      {/* ── Pastilla de estado offline (siempre visible sin conexión) ── */}
+      {}
       {!isOnline && (
         <div style={{
           position: 'fixed',
@@ -92,7 +89,7 @@ export function OfflineProvider({ children }) {
         </div>
       )}
 
-      {/* ── Modal de sincronización ── */}
+      {}
       {showSyncModal && (
         <SyncModal
           syncState={syncState}
@@ -110,7 +107,6 @@ export function useOffline() {
   return ctx;
 }
 
-// ── Modal de sincronización ─────────────────────────────────────────────────
 function SyncModal({ syncState, syncInfo, onClose }) {
   const isCompleted = syncState === 'completado';
   const isPartial   = syncState === 'parcial';
@@ -146,7 +142,7 @@ function SyncModal({ syncState, syncInfo, onClose }) {
         animation: 'slideInUp 0.3s cubic-bezier(0.4,0,0.2,1)',
       }}>
 
-        {/* Ícono animado */}
+        {}
         <div style={{
           width: '72px', height: '72px', borderRadius: '20px', margin: '0 auto 1.25rem',
           background: isCompleted
@@ -167,7 +163,7 @@ function SyncModal({ syncState, syncInfo, onClose }) {
           )}
         </div>
 
-        {/* Título */}
+        {}
         <h3 style={{
           fontSize: '1.2rem', fontWeight: 800,
           color: 'var(--text-primary, #0f172a)',
@@ -176,7 +172,7 @@ function SyncModal({ syncState, syncInfo, onClose }) {
           {isCompleted ? '¡Sincronización completa!' : isPartial ? 'Sincronización parcial' : 'Sincronizando datos...'}
         </h3>
 
-        {/* Subtítulo */}
+        {}
         <p style={{
           fontSize: '0.875rem', color: 'var(--text-secondary, #475569)',
           marginBottom: '1.5rem', lineHeight: 1.5,
@@ -188,7 +184,7 @@ function SyncModal({ syncState, syncInfo, onClose }) {
             : `Enviando ${syncInfo.procesados} de ${syncInfo.total} registro(s) al servidor...`}
         </p>
 
-        {/* Barra de progreso */}
+        {}
         {(isSyncing || isCompleted) && (
           <div style={{
             background: 'var(--border-color, #e2e8f0)',
@@ -207,7 +203,7 @@ function SyncModal({ syncState, syncInfo, onClose }) {
           </div>
         )}
 
-        {/* Porcentaje */}
+        {}
         {isSyncing && (
           <p style={{
             fontSize: '0.75rem', fontWeight: 700,
@@ -218,7 +214,7 @@ function SyncModal({ syncState, syncInfo, onClose }) {
           </p>
         )}
 
-        {/* Botón cerrar (solo al completar) */}
+        {}
         {(isCompleted || isPartial) && (
           <button
             onClick={onClose}
@@ -239,7 +235,7 @@ function SyncModal({ syncState, syncInfo, onClose }) {
           </button>
         )}
 
-        {/* Animaciones inline */}
+        {}
         <style>{`
           @keyframes fadeIn    { from { opacity:0 } to { opacity:1 } }
           @keyframes slideInUp { from { opacity:0; transform:translateY(24px) scale(0.96) } to { opacity:1; transform:translateY(0) scale(1) } }
@@ -249,5 +245,4 @@ function SyncModal({ syncState, syncInfo, onClose }) {
     </div>
   );
 }
-
 

@@ -1,6 +1,4 @@
-// ============================================
-// pages/Cursos.jsx — Gestión de Cursos y Paralelos
-// ============================================
+
 
 import { useState, useEffect } from 'react';
 import API from '../api/axiosConfig';
@@ -50,7 +48,6 @@ const Cursos = () => {
     cargarDocentes();
   }, [usuario]);
 
-  // Backend /cursos ya filtra según el rol; cursosVisibles usa el estado cargado directamente
   const cursosVisibles = cursos;
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -76,7 +73,7 @@ const Cursos = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Enviar docente solo si no es docente (admin asigna)
+      
       const payload = { ...formData };
       if (usuario?.rol === 'docente') {
         delete payload.docente;
@@ -164,7 +161,7 @@ const Cursos = () => {
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
 
-              {/* ── Selector de Docente (solo admin/director, ancho completo) ── */}
+              {}
               {usuario?.rol !== 'docente' && (
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1">
@@ -189,7 +186,7 @@ const Cursos = () => {
                 </div>
               )}
 
-              {/* ── Grado y Paralelo ── */}
+              {}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1">Grado <span className="text-red-500">*</span></label>
@@ -216,7 +213,7 @@ const Cursos = () => {
                 </div>
               </div>
 
-              {/* ── Nivel y Turno ── */}
+              {}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1">Nivel</label>
@@ -236,7 +233,7 @@ const Cursos = () => {
                 </div>
               </div>
 
-              {/* ── Gestión ── */}
+              {}
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1">Gestión (año) <span className="text-red-500">*</span></label>
                 <input

@@ -1,10 +1,7 @@
-// ============================================
-// controllers/cursoController.js — CRUD de Cursos/Paralelos
-// ============================================
+
 
 const Curso = require('../models/Curso');
 
-// CREAR curso — POST /api/cursos
 const crearCurso = async (req, res) => {
   try {
     const payload = { ...req.body };
@@ -40,7 +37,6 @@ const crearCurso = async (req, res) => {
 
 const CuadernoPedagogico = require('../models/CuadernoPedagogico');
 
-// OBTENER todos los cursos — GET /api/cursos
 const obtenerCursos = async (req, res) => {
   try {
     const filtro = {};
@@ -48,7 +44,6 @@ const obtenerCursos = async (req, res) => {
     if (req.query.nivel) filtro.nivel = req.query.nivel;
     if (req.query.docente) filtro.docente = req.query.docente;
 
-    // Si es docente, ve los cursos asignados a él directamente O en sus cuadernos pedagógicos
     if (req.usuario.rol === 'docente') {
       const cuadernos = await CuadernoPedagogico.find({ docente: req.usuario.id }).select('curso');
       const cursoIdsFromCuadernos = cuadernos.map(c => c.curso).filter(Boolean);
@@ -60,8 +55,8 @@ const obtenerCursos = async (req, res) => {
     }
 
     const cursos = await Curso.find(filtro)
-      .populate('docente', 'nombre email') // Trae nombre y email del docente
-      .populate('estudiantes', 'nombres apellidos rude') // Trae datos básicos de estudiantes
+      .populate('docente', 'nombre email') 
+      .populate('estudiantes', 'nombres apellidos rude') 
       .sort({ grado: 1, paralelo: 1 });
 
     res.json({ exito: true, cantidad: cursos.length, data: cursos });
@@ -71,7 +66,6 @@ const obtenerCursos = async (req, res) => {
   }
 };
 
-// OBTENER un curso por ID — GET /api/cursos/:id
 const obtenerCurso = async (req, res) => {
   try {
     const curso = await Curso.findById(req.params.id)
@@ -88,7 +82,6 @@ const obtenerCurso = async (req, res) => {
   }
 };
 
-// ACTUALIZAR curso — PUT /api/cursos/:id
 const actualizarCurso = async (req, res) => {
   try {
     const payload = { ...req.body };
@@ -113,7 +106,6 @@ const actualizarCurso = async (req, res) => {
   }
 };
 
-// AGREGAR estudiante a un curso — POST /api/cursos/:id/estudiantes
 const agregarEstudiante = async (req, res) => {
   try {
     const { estudianteId } = req.body;
@@ -123,7 +115,6 @@ const agregarEstudiante = async (req, res) => {
       return res.status(404).json({ exito: false, mensaje: 'Curso no encontrado' });
     }
 
-    // Verificar que el estudiante no esté ya en el curso
     if (curso.estudiantes.includes(estudianteId)) {
       return res.status(400).json({
         exito: false,
@@ -145,7 +136,6 @@ const agregarEstudiante = async (req, res) => {
   }
 };
 
-// ELIMINAR curso — DELETE /api/cursos/:id
 const eliminarCurso = async (req, res) => {
   try {
     const curso = await Curso.findByIdAndDelete(req.params.id);

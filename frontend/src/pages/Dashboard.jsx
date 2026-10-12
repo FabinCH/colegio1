@@ -1,6 +1,4 @@
-// ============================================
-// pages/Dashboard.jsx — Panel Principal
-// ============================================
+
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
@@ -71,7 +69,7 @@ const Dashboard = () => {
 
   return (
     <div className="page-container">
-      {/* Encabezado */}
+      {}
       <div className="page-header">
         <div>
           <h1 className="page-title">
@@ -87,7 +85,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Tarjetas de estadísticas */}
+      {}
       <div className="stats-grid">
         {tarjetas.map((tarjeta) => (
           <div key={tarjeta.titulo} className={`stat-card ${tarjeta.color}`}>
@@ -102,10 +100,10 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* ══ PANEL DE NOTIFICACIONES (solo director/admin) ══ */}
+      {}
       {esDirectorOAdmin && (
         <div className="notif-test-panel">
-          {/* Header */}
+          {}
           <div className="notif-test-header">
             <span className="notif-test-icon">🔔</span>
             <div style={{ flex: 1 }}>
@@ -117,7 +115,7 @@ const Dashboard = () => {
             )}
           </div>
 
-          {/* Chips de estado */}
+          {}
           <div className="notif-test-status-row">
             <div className={`notif-test-status-chip ${permiso === 'granted' ? 'chip-ok' : permiso === 'denied' ? 'chip-error' : 'chip-warn'}`}>
               {permiso === 'granted'  ? '✅ Permiso concedido'
@@ -129,7 +127,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Área de activación */}
+          {}
           {permiso !== 'granted' ? (
             <div className="notif-test-activate-area">
               <p className="notif-test-activate-text">
@@ -146,7 +144,7 @@ const Dashboard = () => {
               )}
             </div>
           ) : (
-            /* Botones de prueba */
+            
             <div className="notif-test-buttons">
               <p className="notif-test-buttons-label">
                 Haz clic para enviar una notificación de prueba:
@@ -174,7 +172,7 @@ const Dashboard = () => {
             </div>
           )}
 
-          {/* Pasos */}
+          {}
           <div className="notif-test-steps">
             <p className="notif-test-steps-title">📋 Pasos para recibir la notificación:</p>
             <ol className="notif-test-steps-list">
@@ -195,7 +193,7 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Acceso rápido */}
+      {}
       <div className="quick-actions">
         <h2 className="section-title">⚡ Acceso Rápido</h2>
         <div className="actions-grid">

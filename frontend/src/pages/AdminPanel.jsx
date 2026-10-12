@@ -1,29 +1,16 @@
-// ============================================
-// pages/AdminPanel.jsx — Panel de Administración
-// ============================================
-//
-// Implementa TODAS las funcionalidades del diagrama UML:
-//   ✅ Gestionar Usuarios → Asignar Roles, Crear Docente, Eliminar Usuario
-//   ✅ Gestionar Unidades Educativas
-//   ✅ Configurar Año Escolar
-//   ✅ Gestionar Materias → Asignar Materia a Docente, Crear Materia
-//   ✅ Ver Reportes Globales
-//   ✅ Auditoría del Sistema
+
 
 import { useState, useEffect } from 'react';
 import API from '../api/axiosConfig';
 import { useAuth } from '../context/AuthContext';
 
-// ─── Constantes ─────────────────────────────────────────────
 const ROLES = ['docente', 'director', 'admin'];
 const NIVELES = ['inicial', 'primaria', 'secundaria'];
 
-// ─── Componente principal ────────────────────────────────────
 const AdminPanel = () => {
   const { usuario } = useAuth();
   const [seccion, setSeccion] = useState('dashboard');
 
-  // Verificar que es admin
   if (usuario?.rol !== 'admin') {
     return (
       <div className="page-container flex items-center justify-center min-h-[60vh]">
@@ -70,7 +57,7 @@ const AdminPanel = () => {
 
   return (
     <div className="page-container">
-      {/* Header */}
+      {}
       <div className="page-header mb-6">
         <div>
           <h1 className="page-title flex items-center gap-3">
@@ -88,7 +75,7 @@ const AdminPanel = () => {
       </div>
 
       <div className="flex gap-6">
-        {/* Sidebar de navegación */}
+        {}
         <aside className="w-56 flex-shrink-0">
           <nav className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
             {secciones.map(s => (
@@ -108,7 +95,7 @@ const AdminPanel = () => {
           </nav>
         </aside>
 
-        {/* Contenido principal */}
+        {}
         <main className="flex-1 min-w-0">
           {seccion === 'dashboard'  && <SeccionDashboard />}
           {seccion === 'usuarios'   && <SeccionUsuarios />}
@@ -123,9 +110,6 @@ const AdminPanel = () => {
   );
 };
 
-// ═══════════════════════════════════════════════════════════
-// SECCIÓN: DASHBOARD (Estadísticas rápidas)
-// ═══════════════════════════════════════════════════════════
 const SeccionDashboard = () => {
   const [stats, setStats] = useState(null);
   const [cargando, setCargando] = useState(true);
@@ -171,7 +155,7 @@ const SeccionDashboard = () => {
         ))}
       </div>
 
-      {/* Materias por nivel */}
+      {}
       {stats?.academico?.materiasPorNivel?.length > 0 && (
         <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
           <h3 className="font-bold text-slate-800 mb-4">📚 Materias por Nivel</h3>
@@ -186,7 +170,7 @@ const SeccionDashboard = () => {
         </div>
       )}
 
-      {/* Año escolar */}
+      {}
       <div className="bg-gradient-to-r from-blue-600 to-violet-600 rounded-2xl p-6 text-white">
         <div className="flex justify-between items-start">
           <div>
@@ -205,14 +189,11 @@ const SeccionDashboard = () => {
   );
 };
 
-// ═══════════════════════════════════════════════════════════
-// SECCIÓN: GESTIONAR USUARIOS
-// ═══════════════════════════════════════════════════════════
 const SeccionUsuarios = () => {
   const [usuarios, setUsuarios] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [modalCrear, setModalCrear] = useState(false);
-  const [modalRol, setModalRol]   = useState(null); // { id, nombre, rolActual }
+  const [modalRol, setModalRol]   = useState(null); 
   const [busqueda, setBusqueda]   = useState('');
   const [filtroRol, setFiltroRol] = useState('todos');
   const [guardando, setGuardando] = useState(false);
@@ -238,7 +219,6 @@ const SeccionUsuarios = () => {
     setTimeout(() => setExito(''), 3000);
   };
 
-  // Crear docente
   const handleCrear = async (e) => {
     e.preventDefault();
     setGuardando(true);
@@ -256,7 +236,6 @@ const SeccionUsuarios = () => {
     }
   };
 
-  // Asignar rol
   const handleAsignarRol = async (nuevoRol) => {
     setGuardando(true);
     try {
@@ -271,7 +250,6 @@ const SeccionUsuarios = () => {
     }
   };
 
-  // Eliminar usuario
   const handleEliminar = async (id, nombre) => {
     if (!window.confirm(`¿Seguro que deseas eliminar al usuario "${nombre}"? Esta acción no se puede deshacer.`)) return;
     try {
@@ -283,7 +261,6 @@ const SeccionUsuarios = () => {
     }
   };
 
-  // Filtrar
   const usuariosFiltrados = usuarios.filter(u => {
     const matchBusqueda = !busqueda || 
       u.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -302,14 +279,14 @@ const SeccionUsuarios = () => {
     <div className="space-y-5">
       <SectionTitle icon="👥" title="Gestionar Usuarios" subtitle="Crear docentes, asignar roles y eliminar usuarios" />
 
-      {/* Notificación de éxito */}
+      {}
       {exito && (
         <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-emerald-700 font-semibold flex items-center gap-2">
           {exito}
         </div>
       )}
 
-      {/* Barra de acciones */}
+      {}
       <div className="flex flex-wrap gap-3 items-center">
         <input
           type="text"
@@ -336,7 +313,7 @@ const SeccionUsuarios = () => {
         </button>
       </div>
 
-      {/* Tabla de usuarios */}
+      {}
       {cargando ? <CargandoCard /> : (
         <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
@@ -401,7 +378,7 @@ const SeccionUsuarios = () => {
         </div>
       )}
 
-      {/* Modal: Crear Docente */}
+      {}
       {modalCrear && (
         <Modal title="➕ Crear Nuevo Usuario" onClose={() => { setModalCrear(false); setError(''); }}>
           <form onSubmit={handleCrear} className="space-y-4">
@@ -453,7 +430,7 @@ const SeccionUsuarios = () => {
         </Modal>
       )}
 
-      {/* Modal: Asignar Rol */}
+      {}
       {modalRol && (
         <Modal title={`🔑 Asignar Rol — ${modalRol.nombre}`} onClose={() => setModalRol(null)}>
           <p className="text-sm text-slate-500 mb-4">
@@ -492,9 +469,6 @@ const SeccionUsuarios = () => {
   );
 };
 
-// ═══════════════════════════════════════════════════════════
-// SECCIÓN: GESTIONAR MATERIAS (con asignación a docente)
-// ═══════════════════════════════════════════════════════════
 const SeccionMaterias = () => {
   const [materias, setMaterias]   = useState([]);
   const [docentes, setDocentes]   = useState([]);
@@ -600,7 +574,7 @@ const SeccionMaterias = () => {
                 </div>
               </div>
 
-              {/* Docente asignado */}
+              {}
               <div className="mt-3 bg-slate-50 rounded-xl p-3 text-sm">
                 <span className="text-slate-500 text-xs font-semibold">DOCENTE ASIGNADO:</span>
                 <div className="font-semibold text-slate-800 mt-0.5">
@@ -629,7 +603,7 @@ const SeccionMaterias = () => {
         </div>
       )}
 
-      {/* Modal: Crear Materia */}
+      {}
       {modalCrear && (
         <Modal title="➕ Crear Nueva Materia" onClose={() => setModalCrear(false)}>
           <form onSubmit={handleCrear} className="space-y-4">
@@ -660,7 +634,7 @@ const SeccionMaterias = () => {
         </Modal>
       )}
 
-      {/* Modal: Asignar Docente */}
+      {}
       {modalAsignar && (
         <Modal title={`👨‍🏫 Asignar Docente — ${modalAsignar.nombre}`} onClose={() => setModalAsignar(null)}>
           <p className="text-sm text-slate-500 mb-4">Selecciona el docente para esta materia:</p>
@@ -690,9 +664,6 @@ const SeccionMaterias = () => {
   );
 };
 
-// ═══════════════════════════════════════════════════════════
-// SECCIÓN: UNIDADES EDUCATIVAS
-// ═══════════════════════════════════════════════════════════
 const SeccionUnidades = () => {
   const [unidades, setUnidades]   = useState([]);
   const [cargando, setCargando]   = useState(true);
@@ -837,9 +808,6 @@ const SeccionUnidades = () => {
   );
 };
 
-// ═══════════════════════════════════════════════════════════
-// SECCIÓN: CONFIGURAR AÑO ESCOLAR
-// ═══════════════════════════════════════════════════════════
 const SeccionAnioEscolar = () => {
   const [config, setConfig]     = useState(null);
   const [cargando, setCargando] = useState(true);
@@ -899,7 +867,7 @@ const SeccionAnioEscolar = () => {
       {exito && <Alerta tipo="exito" mensaje={exito} />}
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        {/* General */}
+        {}
         <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
           <h3 className="font-bold text-slate-800 flex items-center gap-2">📆 Datos Generales</h3>
           <div className="grid grid-cols-3 gap-4">
@@ -921,7 +889,7 @@ const SeccionAnioEscolar = () => {
           </div>
         </div>
 
-        {/* Periodos */}
+        {}
         <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
           <h3 className="font-bold text-slate-800 flex items-center gap-2">📊 Periodos Trimestrales</h3>
           <div className="space-y-3">
@@ -943,7 +911,7 @@ const SeccionAnioEscolar = () => {
           </div>
         </div>
 
-        {/* Info última actualización */}
+        {}
         {config?.updatedAt && (
           <p className="text-xs text-slate-400 text-right">
             Última actualización: {new Date(config.updatedAt).toLocaleString('es-BO')} por {config.updatedBy}
@@ -964,9 +932,6 @@ const SeccionAnioEscolar = () => {
   );
 };
 
-// ═══════════════════════════════════════════════════════════
-// SECCIÓN: REPORTES GLOBALES
-// ═══════════════════════════════════════════════════════════
 const SeccionReportesGlobales = () => {
   const [stats, setStats]       = useState(null);
   const [cargando, setCargando] = useState(true);
@@ -984,7 +949,7 @@ const SeccionReportesGlobales = () => {
     <div className="space-y-5">
       <SectionTitle icon="📈" title="Ver Reportes Globales" subtitle={`Generado el ${new Date(stats?.generadoEn).toLocaleString('es-BO')}`} />
 
-      {/* Usuarios */}
+      {}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
         <h3 className="font-bold text-slate-800 mb-4">👥 Distribución de Usuarios</h3>
         <div className="grid grid-cols-4 gap-4">
@@ -1002,7 +967,7 @@ const SeccionReportesGlobales = () => {
         </div>
       </div>
 
-      {/* Estudiantes */}
+      {}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
         <h3 className="font-bold text-slate-800 mb-4">🎓 Estudiantes</h3>
         <div className="flex items-center gap-6">
@@ -1019,7 +984,7 @@ const SeccionReportesGlobales = () => {
         </div>
       </div>
 
-      {/* Académico */}
+      {}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
         <h3 className="font-bold text-slate-800 mb-4">📚 Información Académica</h3>
         <div className="grid grid-cols-2 gap-4 mb-4">
@@ -1050,9 +1015,6 @@ const SeccionReportesGlobales = () => {
   );
 };
 
-// ═══════════════════════════════════════════════════════════
-// SECCIÓN: AUDITORÍA DEL SISTEMA
-// ═══════════════════════════════════════════════════════════
 const SeccionAuditoria = () => {
   const [logs, setLogs]         = useState([]);
   const [total, setTotal]       = useState(0);
@@ -1091,7 +1053,7 @@ const SeccionAuditoria = () => {
     <div className="space-y-5">
       <SectionTitle icon="🔍" title="Auditoría del Sistema" subtitle={`${total} eventos registrados en total`} />
 
-      {/* Filtros */}
+      {}
       <div className="flex gap-3 flex-wrap">
         <input
           type="text"
@@ -1113,7 +1075,7 @@ const SeccionAuditoria = () => {
         </button>
       </div>
 
-      {/* Lista de logs */}
+      {}
       {cargando ? <CargandoCard /> : (
         <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
@@ -1149,7 +1111,7 @@ const SeccionAuditoria = () => {
               </tbody>
             </table>
           </div>
-          {/* Paginación */}
+          {}
           <div className="flex justify-between items-center p-4 border-t border-slate-100 bg-slate-50">
             <span className="text-xs text-slate-500">Mostrando {logs.length} de {total} registros</span>
             <div className="flex gap-2">
@@ -1169,10 +1131,6 @@ const SeccionAuditoria = () => {
     </div>
   );
 };
-
-// ═══════════════════════════════════════════════════════════
-// COMPONENTES AUXILIARES
-// ═══════════════════════════════════════════════════════════
 
 const SectionTitle = ({ icon, title, subtitle }) => (
   <div className="border-b border-slate-100 pb-4">

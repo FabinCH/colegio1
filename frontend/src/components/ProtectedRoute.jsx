@@ -1,6 +1,4 @@
-// ============================================
-// components/ProtectedRoute.jsx — Protección de Rutas
-// ============================================
+
 
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -8,8 +6,6 @@ import { useAuth } from '../context/AuthContext';
 const ProtectedRoute = ({ children }) => {
   const { estaAutenticado, cargando } = useAuth();
 
-  // Mostrar spinner solo si estamos verificando activamente con el servidor
-  // (ocurre solo cuando hay token pero no datos locales de usuario)
   if (cargando) {
     return (
       <div style={{
@@ -37,7 +33,6 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  // Si no está autenticado, redirigir al login
   if (!estaAutenticado) {
     return <Navigate to="/login" replace />;
   }

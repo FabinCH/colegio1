@@ -1,6 +1,4 @@
-// ============================================
-// pages/Materias.jsx — Gestión de Materias + Inscripción de Estudiantes
-// ============================================
+
 
 import { useState, useEffect, useRef } from 'react';
 import API from '../api/axiosConfig';
@@ -22,29 +20,24 @@ const Materias = () => {
     docenteAsignado: '',
   });
 
-  // ─── Estado para el modal de inscripción ───
   const [mostrarModalInscripcion, setMostrarModalInscripcion] = useState(false);
   const [materiaParaInscribir, setMateriaParaInscribir] = useState(null);
 
-  // Cuadernos filtrados para esa materia
   const [cuadernosDeMateria, setCuadernosDeMateria] = useState([]);
   const [cuadernoElegido, setCuadernoElegido] = useState('');
 
-  // Búsqueda de estudiantes
   const [todosEstudiantes, setTodosEstudiantes] = useState([]);
   const [busqueda, setBusqueda] = useState('');
   const [estudiantesFiltrados, setEstudiantesFiltrados] = useState([]);
   const [mostrarDropdown, setMostrarDropdown] = useState(false);
   const [estudianteSeleccionado, setEstudianteSeleccionado] = useState(null);
 
-  // Lista de ya-inscritos en el cuaderno elegido
   const [inscritos, setInscritos] = useState([]);
   const [cargandoInscritos, setCargandoInscritos] = useState(false);
   const [inscribiendo, setInscribiendo] = useState(false);
 
   const busquedaRef = useRef(null);
 
-  // ────────────────────────────────────────
   const cargarMaterias = async () => {
     try {
       setCargando(true);
@@ -72,7 +65,6 @@ const Materias = () => {
     cargarDocentes();
   }, [usuario]);
 
-  // Filtrar estudiantes por búsqueda
   useEffect(() => {
     if (busqueda.trim().length < 2) {
       setEstudiantesFiltrados([]);
@@ -88,7 +80,6 @@ const Materias = () => {
     setMostrarDropdown(filtrados.length > 0);
   }, [busqueda, todosEstudiantes]);
 
-  // Cargar inscritos cuando cambia el cuaderno elegido
   useEffect(() => {
     if (!cuadernoElegido) { setInscritos([]); return; }
     const fetchInscritos = async () => {
@@ -105,7 +96,6 @@ const Materias = () => {
     fetchInscritos();
   }, [cuadernoElegido]);
 
-  // ─── Handlers Materia CRUD ───
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const abrirModal = (materia = null) => {
@@ -151,7 +141,6 @@ const Materias = () => {
     }
   };
 
-  // ─── Handlers Inscripción ───
   const abrirModalInscripcion = async (materia) => {
     setMateriaParaInscribir(materia);
     setCuadernoElegido('');
@@ -161,12 +150,11 @@ const Materias = () => {
     setMostrarDropdown(false);
 
     try {
-      // Cargar cuadernos que correspondan a esta materia
+      
       const { data: cuadData } = await API.get('/cuadernos');
       const filtrados = (cuadData.data || []).filter(c => c.materia?._id === materia._id);
       setCuadernosDeMateria(filtrados);
 
-      // Cargar todos los estudiantes para el buscador
       const { data: estData } = await API.get('/estudiantes');
       setTodosEstudiantes(estData.data || []);
     } catch (err) {
@@ -186,7 +174,6 @@ const Materias = () => {
     if (!cuadernoElegido) return alert('Seleccione un cuaderno/curso primero');
     if (!estudianteSeleccionado) return alert('Seleccione un estudiante');
 
-    // Verificar si ya está inscrito
     const yaInscrito = inscritos.some(i => i.estudiante?._id === estudianteSeleccionado._id);
     if (yaInscrito) return alert('Este estudiante ya está inscrito en este cuaderno');
 
@@ -196,7 +183,7 @@ const Materias = () => {
         cuaderno: cuadernoElegido,
         estudiante: estudianteSeleccionado._id,
       });
-      // Recargar inscritos
+      
       const { data } = await API.get(`/inscripciones?cuaderno=${cuadernoElegido}`);
       setInscritos(data.data || []);
       setBusqueda('');
@@ -218,7 +205,6 @@ const Materias = () => {
     }
   };
 
-  // ─── UI ───
   return (
     <div className="page-container">
       <div className="page-header">
@@ -255,7 +241,7 @@ const Materias = () => {
               <span className="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded text-xs font-semibold capitalize">{materia.nivel}</span>
               <span className="bg-slate-100 text-slate-700 px-2.5 py-1 rounded text-xs font-semibold">{materia.grado}</span>
             </div>
-            {/* Botón de Inscripción */}
+            {}
             <button
               onClick={() => abrirModalInscripcion(materia)}
               className="mt-auto w-full flex items-center justify-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
@@ -266,7 +252,7 @@ const Materias = () => {
         ))}
       </div>
 
-      {/* ─── Modal Nueva/Editar Materia ─── */}
+      {}
       {mostrarModal && (
         <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl p-6 w-full max-w-lg shadow-2xl">
@@ -276,7 +262,7 @@ const Materias = () => {
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
 
-              {/* ── Docente (solo admin/director) ── */}
+              {}
               {usuario?.rol !== 'docente' && (
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1">
@@ -330,11 +316,11 @@ const Materias = () => {
         </div>
       )}
 
-      {/* ─── Modal de Inscripción de Estudiantes ─── */}
+      {}
       {mostrarModalInscripcion && (
         <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh]">
-            {/* Header */}
+            {}
             <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-6 rounded-t-2xl flex justify-between items-start">
               <div>
                 <h2 className="text-xl font-bold">👥 Inscripción de Estudiantes</h2>
@@ -347,7 +333,7 @@ const Materias = () => {
             </div>
 
             <div className="overflow-y-auto flex-1 p-6 space-y-5">
-              {/* Selección de Cuaderno/Curso */}
+              {}
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
                   1. Seleccione el Curso / Cuaderno
@@ -372,7 +358,7 @@ const Materias = () => {
                 )}
               </div>
 
-              {/* Buscador de Estudiantes */}
+              {}
               {cuadernoElegido && (
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -393,7 +379,7 @@ const Materias = () => {
                           placeholder="Escriba el nombre o RUDE del estudiante..."
                           className="w-full pl-9 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-400 focus:border-transparent outline-none text-slate-700"
                         />
-                        {/* Dropdown sugerencias */}
+                        {}
                         {mostrarDropdown && (
                           <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden">
                             {estudiantesFiltrados.map(est => (
@@ -429,7 +415,7 @@ const Materias = () => {
                 </div>
               )}
 
-              {/* Lista de Inscritos */}
+              {}
               {cuadernoElegido && (
                 <div>
                   <div className="flex items-center justify-between mb-2">
@@ -486,7 +472,7 @@ const Materias = () => {
               )}
             </div>
 
-            {/* Footer */}
+            {}
             <div className="p-4 border-t border-slate-100 flex justify-end">
               <button
                 onClick={() => setMostrarModalInscripcion(false)}

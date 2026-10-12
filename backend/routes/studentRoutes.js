@@ -1,13 +1,4 @@
-// ============================================
-// routes/studentRoutes.js — Rutas de Estudiantes
-// ============================================
-//
-// RUTAS DISPONIBLES (todas protegidas con JWT):
-//   POST   /api/estudiantes       → Crear estudiante
-//   GET    /api/estudiantes       → Listar todos
-//   GET    /api/estudiantes/:id   → Obtener uno por ID
-//   PUT    /api/estudiantes/:id   → Actualizar
-//   DELETE /api/estudiantes/:id   → Eliminar
+
 
 const express = require('express');
 const router = express.Router();
@@ -20,7 +11,6 @@ const {
 } = require('../controllers/studentController');
 const { protect, authorize } = require('../middlewares/authMiddleware');
 
-// Todas las rutas de estudiantes requieren autenticación
 router.use(protect);
 
 router.route('/')

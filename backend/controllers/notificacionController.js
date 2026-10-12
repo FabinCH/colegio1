@@ -1,29 +1,16 @@
-// ============================================
-// controllers/notificacionController.js
-// ============================================
-//
-// Maneja toda la lógica de notificaciones:
-//   - Crear notificaciones
-//   - Listar notificaciones del director
-//   - Marcar como leídas
-//   - Enviar push notifications
-//   - Gestionar suscripciones push
+
 
 const webpush = require('web-push');
 const Notificacion = require('../models/Notificacion');
 const PushSubscripcion = require('../models/PushSubscripcion');
 const User = require('../models/User');
 
-// --- Configurar Web Push ---
 webpush.setVapidDetails(
   process.env.VAPID_EMAIL || 'mailto:admin@cuaderno.edu.bo',
   process.env.VAPID_PUBLIC_KEY,
   process.env.VAPID_PRIVATE_KEY
 );
 
-// ─────────────────────────────────────────────────────────────
-// HELPER: Enviar push a todos los dispositivos de un usuario
-// ─────────────────────────────────────────────────────────────
 async function enviarPushAUsuario(usuarioId, payload) {
   try {
     const suscripciones = await PushSubscripcion.find({ usuario: usuarioId });
@@ -40,7 +27,7 @@ async function enviarPushAUsuario(usuarioId, payload) {
       try {
         await webpush.sendNotification(pushSub, JSON.stringify(payload));
       } catch (err) {
-        // Si el endpoint ya no es válido (expiró), lo eliminamos
+        
         if (err.statusCode === 410 || err.statusCode === 404) {
           await PushSubscripcion.deleteOne({ _id: sub._id });
           console.log('Suscripción push expirada eliminada:', sub.endpoint);
@@ -56,10 +43,6 @@ async function enviarPushAUsuario(usuarioId, payload) {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// HELPER EXPORTADO: Crear notificación + enviar push
-// Usado desde otros controllers (asistencia, evaluacion, etc.)
-// ─────────────────────────────────────────────────────────────
 async function crearYEnviarNotificacion({
   tipo = 'sistema',
   titulo,
@@ -70,14 +53,13 @@ async function crearYEnviarNotificacion({
   soloRoles = ['director', 'admin'],
 }) {
   try {
-    // Buscar todos los directores y admins
+    
     const destinatarios = await User.find({
       rol: { $in: soloRoles },
     }).select('_id');
 
     if (!destinatarios.length) return;
 
-    // Crear notificación en BD para cada uno
     const notificaciones = destinatarios.map((u) => ({
       destinatario: u._id,
       remitente,
@@ -90,14 +72,13 @@ async function crearYEnviarNotificacion({
 
     await Notificacion.insertMany(notificaciones);
 
-    // Enviar push a cada destinatario
     const pushPayload = {
       title: titulo,
       body: mensaje,
       icon: '/icons/icon-192x192.png',
       badge: '/icons/badge-72x72.png',
       data: { tipo, ...datos },
-      tag: tipo, // agrupa notificaciones del mismo tipo
+      tag: tipo, 
     };
 
     for (const u of destinatarios) {
@@ -108,10 +89,6 @@ async function crearYEnviarNotificacion({
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// GET /api/notificaciones/vapid-key
-// Retorna la clave pública VAPID para que el frontend la use
-// ─────────────────────────────────────────────────────────────
 const getVapidKey = (req, res) => {
   res.json({
     exito: true,
@@ -119,10 +96,6 @@ const getVapidKey = (req, res) => {
   });
 };
 
-// ─────────────────────────────────────────────────────────────
-// POST /api/notificaciones/suscribir
-// El frontend envía su suscripción push para guardarla
-// ─────────────────────────────────────────────────────────────
 const suscribir = async (req, res) => {
   try {
     const { subscription } = req.body;
@@ -130,7 +103,6 @@ const suscribir = async (req, res) => {
       return res.status(400).json({ exito: false, mensaje: 'Suscripción inválida' });
     }
 
-    // Upsert: si ya existe el endpoint, actualiza; si no, crea
     await PushSubscripcion.findOneAndUpdate(
       { endpoint: subscription.endpoint },
       {
@@ -149,10 +121,6 @@ const suscribir = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// DELETE /api/notificaciones/desuscribir
-// Elimina la suscripción push del dispositivo
-// ─────────────────────────────────────────────────────────────
 const desuscribir = async (req, res) => {
   try {
     const { endpoint } = req.body;
@@ -172,10 +140,6 @@ const desuscribir = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// GET /api/notificaciones
-// Lista las notificaciones del director autenticado
-// ─────────────────────────────────────────────────────────────
 const listar = async (req, res) => {
   try {
     const { pagina = 1, limite = 20, soloNoLeidas } = req.query;
@@ -208,10 +172,6 @@ const listar = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// GET /api/notificaciones/conteo
-// Solo retorna el número de notificaciones no leídas (para el badge)
-// ─────────────────────────────────────────────────────────────
 const conteoNoLeidas = async (req, res) => {
   try {
     const count = await Notificacion.countDocuments({
@@ -224,10 +184,6 @@ const conteoNoLeidas = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// PATCH /api/notificaciones/:id/leer
-// Marca una notificación como leída
-// ─────────────────────────────────────────────────────────────
 const marcarLeida = async (req, res) => {
   try {
     const notif = await Notificacion.findOneAndUpdate(
@@ -246,10 +202,6 @@ const marcarLeida = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// PATCH /api/notificaciones/leer-todas
-// Marca TODAS las notificaciones del usuario como leídas
-// ─────────────────────────────────────────────────────────────
 const marcarTodasLeidas = async (req, res) => {
   try {
     await Notificacion.updateMany(
@@ -263,10 +215,6 @@ const marcarTodasLeidas = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// DELETE /api/notificaciones/:id
-// Elimina una notificación
-// ─────────────────────────────────────────────────────────────
 const eliminar = async (req, res) => {
   try {
     const notif = await Notificacion.findOneAndDelete({
@@ -284,10 +232,6 @@ const eliminar = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// POST /api/notificaciones/enviar-prueba
-// Envía una notificación de prueba (solo admin)
-// ─────────────────────────────────────────────────────────────
 const enviarPrueba = async (req, res) => {
   try {
     await crearYEnviarNotificacion({
@@ -315,6 +259,6 @@ module.exports = {
   marcarTodasLeidas,
   eliminar,
   enviarPrueba,
-  // Helper para usar desde otros controllers
+  
   crearYEnviarNotificacion,
 };

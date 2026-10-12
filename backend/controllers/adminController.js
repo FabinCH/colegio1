@@ -1,23 +1,10 @@
-// ============================================
-// controllers/adminController.js — Panel de Administración
-// ============================================
-//
-// Funciones exclusivas para el rol 'admin':
-//   - Gestionar Usuarios (listar, crear docente, asignar rol, eliminar)
-//   - Gestionar Unidades Educativas
-//   - Configurar Año Escolar
-//   - Asignar Materia a Docente
-//   - Ver Reportes Globales
-//   - Auditoría del Sistema
+
 
 const User    = require('../models/User');
 const Materia = require('../models/Materia');
 const Curso   = require('../models/Curso');
 const Student = require('../models/Student');
 
-// ─── LOG DE AUDITORÍA EN MEMORIA ──────────────────────────────────────────────
-// Guardamos los últimos 500 eventos en un array en memoria.
-// En producción esto debería persistirse en BD, pero para el proyecto funciona.
 const auditLogs = [];
 
 const registrarAuditoria = (accion, descripcion, usuario, datos = {}) => {
@@ -30,18 +17,12 @@ const registrarAuditoria = (accion, descripcion, usuario, datos = {}) => {
     datos,
     fecha:       new Date().toISOString(),
   });
-  // Mantener máximo 500 registros
+  
   if (auditLogs.length > 500) auditLogs.pop();
 };
 
-// ─── EXPORTAR registrarAuditoria para usarla desde otros controllers ──────────
 module.exports.registrarAuditoria = registrarAuditoria;
 
-// =============================================================
-// GESTIÓN DE USUARIOS
-// =============================================================
-
-// LISTAR todos los usuarios — GET /api/admin/usuarios
 const listarUsuarios = async (req, res) => {
   try {
     const usuarios = await User.find({}).select('-password').sort({ createdAt: -1 });
@@ -52,12 +33,10 @@ const listarUsuarios = async (req, res) => {
   }
 };
 
-// CREAR DOCENTE — POST /api/admin/usuarios
 const crearDocente = async (req, res) => {
   try {
     const { nombre, email, password, rol = 'docente' } = req.body;
 
-    // Validar que el rol sea válido
     const rolesPermitidos = ['admin', 'director', 'docente'];
     if (!rolesPermitidos.includes(rol)) {
       return res.status(400).json({
@@ -100,7 +79,6 @@ const crearDocente = async (req, res) => {
   }
 };
 
-// ASIGNAR ROL — PUT /api/admin/usuarios/:id/rol
 const asignarRol = async (req, res) => {
   try {
     const { rol } = req.body;
@@ -113,7 +91,6 @@ const asignarRol = async (req, res) => {
       });
     }
 
-    // No puede cambiar su propio rol
     if (req.params.id === String(req.usuario.id)) {
       return res.status(400).json({
         exito: false,
@@ -145,10 +122,9 @@ const asignarRol = async (req, res) => {
   }
 };
 
-// ELIMINAR USUARIO — DELETE /api/admin/usuarios/:id
 const eliminarUsuario = async (req, res) => {
   try {
-    // No puede eliminarse a sí mismo
+    
     if (req.params.id === String(req.usuario.id)) {
       return res.status(400).json({
         exito: false,
@@ -176,24 +152,15 @@ const eliminarUsuario = async (req, res) => {
   }
 };
 
-// =============================================================
-// ASIGNAR MATERIA A DOCENTE
-// =============================================================
-// PUT /api/admin/materias/:id/asignar-docente
 const asignarMateriaDocente = async (req, res) => {
   try {
     const { docenteId } = req.body;
 
-    // Verificar que el docente existe
     const docente = await User.findById(docenteId).select('-password');
     if (!docente) {
       return res.status(404).json({ exito: false, mensaje: 'Docente no encontrado' });
     }
 
-    // Buscar el curso que corresponde y asignarle ese docente
-    // En este sistema, la materia se asigna actualizando el campo 'docente' en Curso
-    // Buscamos cursos que tengan esa materia via cuadernos, o bien asignamos al modelo Materia
-    // Por simplicidad, agregamos un campo docenteAsignado a la Materia
     const materia = await Materia.findByIdAndUpdate(
       req.params.id,
       { docenteAsignado: docenteId },
@@ -222,10 +189,6 @@ const asignarMateriaDocente = async (req, res) => {
   }
 };
 
-// =============================================================
-// CONFIGURACIÓN AÑO ESCOLAR
-// =============================================================
-// Guardamos la configuración en memoria (en producción sería en BD)
 let configAnioEscolar = {
   anio:         new Date().getFullYear(),
   fechaInicio:  '',
@@ -240,12 +203,10 @@ let configAnioEscolar = {
   updatedBy:    null,
 };
 
-// GET /api/admin/anio-escolar
 const obtenerConfigAnio = async (req, res) => {
   res.json({ exito: true, data: configAnioEscolar });
 };
 
-// PUT /api/admin/anio-escolar
 const actualizarConfigAnio = async (req, res) => {
   try {
     const { anio, fechaInicio, fechaFin, periodos } = req.body;
@@ -274,10 +235,6 @@ const actualizarConfigAnio = async (req, res) => {
   }
 };
 
-// =============================================================
-// UNIDADES EDUCATIVAS
-// =============================================================
-// En memoria para el proyecto (en producción, modelo MongoDB)
 let unidades = [
   {
     _id:       'ue_principal',
@@ -292,12 +249,10 @@ let unidades = [
   },
 ];
 
-// GET /api/admin/unidades-educativas
 const listarUnidades = async (req, res) => {
   res.json({ exito: true, cantidad: unidades.length, data: unidades });
 };
 
-// POST /api/admin/unidades-educativas
 const crearUnidad = async (req, res) => {
   try {
     const { nombre, codigo, nivel, director, direccion, telefono } = req.body;
@@ -334,7 +289,6 @@ const crearUnidad = async (req, res) => {
   }
 };
 
-// PUT /api/admin/unidades-educativas/:id
 const actualizarUnidad = async (req, res) => {
   try {
     const idx = unidades.findIndex(u => u._id === req.params.id);
@@ -358,7 +312,6 @@ const actualizarUnidad = async (req, res) => {
   }
 };
 
-// DELETE /api/admin/unidades-educativas/:id
 const eliminarUnidad = async (req, res) => {
   try {
     const idx = unidades.findIndex(u => u._id === req.params.id);
@@ -383,10 +336,6 @@ const eliminarUnidad = async (req, res) => {
   }
 };
 
-// =============================================================
-// REPORTES GLOBALES
-// =============================================================
-// GET /api/admin/reportes-globales
 const obtenerReportesGlobales = async (req, res) => {
   try {
     const [
@@ -407,19 +356,17 @@ const obtenerReportesGlobales = async (req, res) => {
       Curso.countDocuments({}),
     ]);
 
-    // Materias por nivel
     const materiasPorNivel = await Materia.aggregate([
       { $group: { _id: '$nivel', cantidad: { $sum: 1 } } },
       { $sort: { _id: 1 } },
     ]);
 
-    // Estudiantes por género (si el modelo lo tiene)
     let estudiantesPorGenero = [];
     try {
       estudiantesPorGenero = await Student.aggregate([
         { $group: { _id: '$sexo', cantidad: { $sum: 1 } } },
       ]);
-    } catch { /* campo no disponible */ }
+    } catch {  }
 
     res.json({
       exito: true,
@@ -449,10 +396,6 @@ const obtenerReportesGlobales = async (req, res) => {
   }
 };
 
-// =============================================================
-// AUDITORÍA DEL SISTEMA
-// =============================================================
-// GET /api/admin/auditoria?page=1&limit=50&accion=CREAR_USUARIO
 const obtenerAuditoria = async (req, res) => {
   try {
     const { page = 1, limit = 50, accion, usuario } = req.query;
@@ -481,7 +424,6 @@ const obtenerAuditoria = async (req, res) => {
   }
 };
 
-// Registrar inicio del servidor como primer log
 registrarAuditoria(
   'SISTEMA_INICIADO',
   'El servidor del Panel de Administración fue iniciado',
@@ -489,25 +431,25 @@ registrarAuditoria(
 );
 
 module.exports = {
-  // Usuarios
+  
   listarUsuarios,
   crearDocente,
   asignarRol,
   eliminarUsuario,
-  // Materias
+  
   asignarMateriaDocente,
-  // Año Escolar
+  
   obtenerConfigAnio,
   actualizarConfigAnio,
-  // Unidades Educativas
+  
   listarUnidades,
   crearUnidad,
   actualizarUnidad,
   eliminarUnidad,
-  // Reportes Globales
+  
   obtenerReportesGlobales,
-  // Auditoría
+  
   obtenerAuditoria,
-  // Helper
+  
   registrarAuditoria,
 };

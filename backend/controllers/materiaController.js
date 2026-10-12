@@ -1,10 +1,7 @@
-// ============================================
-// controllers/materiaController.js — CRUD de Materias
-// ============================================
+
 
 const Materia = require('../models/Materia');
 
-// CREAR materia — POST /api/materias
 const crearMateria = async (req, res) => {
   try {
     const materia = await Materia.create(req.body);
@@ -31,14 +28,12 @@ const crearMateria = async (req, res) => {
 
 const CuadernoPedagogico = require('../models/CuadernoPedagogico');
 
-// OBTENER todas las materias — GET /api/materias
 const obtenerMaterias = async (req, res) => {
   try {
     const filtro = {};
     if (req.query.nivel) filtro.nivel = req.query.nivel;
     if (req.query.grado) filtro.grado = req.query.grado;
 
-    // Si es docente, ve materias asignadas directamente O en sus cuadernos pedagógicos
     if (req.usuario.rol === 'docente') {
       const cuadernos = await CuadernoPedagogico.find({ docente: req.usuario.id }).select('materia');
       const materiaIdsFromCuadernos = cuadernos.map(c => c.materia).filter(Boolean);
@@ -59,7 +54,6 @@ const obtenerMaterias = async (req, res) => {
   }
 };
 
-// OBTENER una materia por ID — GET /api/materias/:id
 const obtenerMateria = async (req, res) => {
   try {
     const materia = await Materia.findById(req.params.id)
@@ -74,7 +68,6 @@ const obtenerMateria = async (req, res) => {
   }
 };
 
-// ACTUALIZAR materia — PUT /api/materias/:id
 const actualizarMateria = async (req, res) => {
   try {
     const materia = await Materia.findByIdAndUpdate(req.params.id, req.body, {
@@ -95,7 +88,6 @@ const actualizarMateria = async (req, res) => {
   }
 };
 
-// ELIMINAR materia — DELETE /api/materias/:id
 const eliminarMateria = async (req, res) => {
   try {
     const materia = await Materia.findByIdAndDelete(req.params.id);

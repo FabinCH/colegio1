@@ -1,14 +1,9 @@
-// ============================================
-// pages/Cuadernos.jsx — Gestión de Cuadernos Pedagógicos
-// ============================================
-// Incluye: CaratulaForm con selectores dinámicos (departamento→distrito)
-// y vista previa (preview) de la carátula en tiempo real
+
 
 import { useState, useEffect } from 'react';
 import API from '../api/axiosConfig';
 import { useAuth } from '../context/AuthContext';
 
-// Datos jerárquicos de Bolivia para selectores dinámicos
 const DEPARTAMENTOS_DATA = {
   'La Paz': ['La Paz 1', 'La Paz 2', 'La Paz 3', 'El Alto 1', 'El Alto 2', 'El Alto 3', 'Caranavi', 'Guanay', 'Achacachi', 'Viacha', 'Pucarani', 'Batallas'],
   'Cochabamba': ['Cochabamba 1', 'Cochabamba 2', 'Cochabamba 3', 'Quillacollo', 'Sacaba', 'Tiquipaya', 'Punata', 'Cliza'],
@@ -29,8 +24,8 @@ const Cuadernos = () => {
   const [cargando, setCargando] = useState(true);
   const [docentes, setDocentes] = useState([]);
   const [mostrarModal, setMostrarModal] = useState(false);
-  const [mostrarPreview, setMostrarPreview] = useState(null); // ID del cuaderno para preview
-  const [cuadernoActual, setCuadernoActual] = useState(null); // Para saber cuál estamos editando
+  const [mostrarPreview, setMostrarPreview] = useState(null); 
+  const [cuadernoActual, setCuadernoActual] = useState(null); 
   
   const [formData, setFormData] = useState({
     departamento: 'La Paz',
@@ -43,7 +38,6 @@ const Cuadernos = () => {
     gestion: new Date().getFullYear(),
   });
 
-  // Fetch docentes when modal opens (if not docente)
   const cargarDocentes = async () => {
     try {
       const { data } = await API.get('/admin/usuarios?rol=docente');
@@ -75,13 +69,12 @@ const Cuadernos = () => {
     cargarDatos();
   }, []);
 
-  // Obtener distritos según el departamento seleccionado
   const distritosDisponibles = DEPARTAMENTOS_DATA[formData.departamento] || [];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === 'departamento') {
-      // Al cambiar departamento, resetear distrito
+      
       setFormData({ ...formData, departamento: value, distritoEducativo: '' });
     } else {
       setFormData({ ...formData, [name]: value });
@@ -143,7 +136,6 @@ const Cuadernos = () => {
     }
   };
 
-  // Obtener datos de un cuaderno para el preview
   const getCursoLabel = (cuad) => {
     return `${cuad.curso?.grado || ''} "${cuad.curso?.paralelo || ''}" — Turno ${cuad.curso?.turno || ''}`;
   };
@@ -190,7 +182,7 @@ const Cuadernos = () => {
               <p><span className="font-semibold text-slate-700">Gestión:</span> {cuad.gestion}</p>
             </div>
 
-            {/* ──── VISTA PREVIA DE CARÁTULA ──── */}
+            {}
             {mostrarPreview === cuad._id && (
               <div className="mt-5 border-2 border-dashed border-blue-200 rounded-xl bg-gradient-to-b from-blue-50 to-white p-6 transition-all">
                 <div className="text-center space-y-2">
@@ -232,7 +224,7 @@ const Cuadernos = () => {
         ))}
       </div>
 
-      {/* ──── MODAL: CaratulaForm con selectores dinámicos ──── */}
+      {}
       {mostrarModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl overflow-hidden max-h-[90vh] flex flex-col">
@@ -242,7 +234,7 @@ const Cuadernos = () => {
             </div>
 
             <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
-              {/* ──── FORMULARIO (izquierda) ──── */}
+              {}
               <form onSubmit={handleSubmit} className="p-6 space-y-4 flex-1 overflow-y-auto">
                 <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100 pb-2">
                   📚 Asignación Académica
@@ -283,7 +275,7 @@ const Cuadernos = () => {
                   🏛️ Datos Institucionales (Carátula)
                 </h3>
 
-                {/* Selectores Dinámicos en Cascada */}
+                {}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Departamento *</label>
@@ -320,7 +312,7 @@ const Cuadernos = () => {
                 </div>
               </form>
 
-              {/* ──── PREVIEW EN TIEMPO REAL (derecha) ──── */}
+              {}
               <div className="w-full md:w-80 bg-gradient-to-b from-slate-50 to-slate-100 border-l border-slate-200 p-6 overflow-y-auto flex flex-col">
                 <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 text-center">Vista Previa de Carátula</h3>
                 

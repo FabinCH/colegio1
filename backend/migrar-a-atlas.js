@@ -1,14 +1,10 @@
-// ============================================
-// migrar-a-atlas.js — Copia tu Base de Datos Local a MongoDB Atlas
-// ============================================
-//
-// USO:
-// 1. En tu archivo .env agrega la variable ATLAS_URI con tu enlace de MongoDB Atlas.
-//    Ejemplo: ATLAS_URI=mongodb+srv://usuario:password@cluster.mongodb.net/cuaderno_pedagogico
-// 2. Ejecuta en tu terminal: node migrar-a-atlas.js
+
+
+const path = require('path');
 
 const dotenv = require('dotenv');
 dotenv.config();
+dotenv.config({ path: path.join(__dirname, '.env') });
 const mongoose = require('mongoose');
 
 const LOCAL_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/cuaderno_pedagogico';
@@ -29,7 +25,7 @@ const migrar = async () => {
     console.log('✅ Conectado a MongoDB LOCAL.');
 
     console.log('⏳ Conectando a MongoDB ATLAS (Nube)...');
-    connAtlas = await mongoose.createConnection(ATLAS_URI).asPromise();
+    connAtlas = await mongoose.createConnection(ATLAS_URI, { serverSelectionTimeoutMS: 8000 }).asPromise();
     console.log('✅ Conectado a MongoDB ATLAS.');
 
     const colecciones = await connLocal.db.listCollections().toArray();
@@ -48,7 +44,7 @@ const migrar = async () => {
       const datos = await connLocal.db.collection(nombreCol).find({}).toArray();
 
       if (datos.length > 0) {
-        // Limpiar colección de destino en Atlas e insertar datos
+        
         await connAtlas.db.collection(nombreCol).deleteMany({});
         await connAtlas.db.collection(nombreCol).insertMany(datos);
         console.log(`  ✓ Colección '${nombreCol}': ${datos.length} documentos migrados a Atlas.`);

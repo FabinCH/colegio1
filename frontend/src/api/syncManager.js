@@ -1,6 +1,4 @@
-// ============================================
-// api/syncManager.js — Sincronización automática
-// ============================================
+
 
 import API from './axiosConfig';
 import {
@@ -18,7 +16,6 @@ import {
 let syncing = false;
 const listeners = new Set();
 
-// ─── Listeners de estado ─────────────────────────────────────────────────────
 export function onSyncChange(callback) {
   listeners.add(callback);
   return () => listeners.delete(callback);
@@ -28,20 +25,16 @@ function notificar(payload) {
   listeners.forEach((cb) => cb(payload));
 }
 
-// ─── Extraer el documento real de la respuesta del backend ───────────────────
-// El backend devuelve { exito: true, data: {...} } o { exito: true, data: [{...}] }
-// Necesitamos el documento real, no el envelope completo
 function extraerDocumento(responseData) {
   if (!responseData) return null;
-  // Si tiene la forma { exito, data } → extraer data
+  
   if (responseData.exito !== undefined && responseData.data !== undefined) {
     return responseData.data;
   }
-  // Si ya es el documento directamente
+  
   return responseData;
 }
 
-// ─── Procesar la cola de sincronización ──────────────────────────────────────
 export async function procesarCola() {
   if (syncing || !navigator.onLine) return;
 
@@ -63,12 +56,11 @@ export async function procesarCola() {
       else if (item.metodo === 'PUT')    response = await API.put(item.url, item.datos);
       else if (item.metodo === 'DELETE') response = await API.delete(item.url);
 
-      // Guardar el documento real en caché (no el envelope)
       if (response?.data) {
         const doc = extraerDocumento(response.data);
         if (doc) {
           if (item.tipo === 'asistencia') {
-            // Si el doc es array guardar cada uno, si es objeto guardar solo ese
+            
             const lista = Array.isArray(doc) ? doc : [doc];
             await guardarAsistenciaCache(lista);
           } else if (item.tipo === 'evaluacion') {
@@ -78,7 +70,6 @@ export async function procesarCola() {
         }
       }
 
-      // Eliminar de la cola
       await eliminarDeLaCola(item.id);
       procesados++;
       notificar({ estado: 'sincronizando', total: pendientes.length, procesados });
@@ -97,7 +88,6 @@ export async function procesarCola() {
 
   syncing = false;
 
-  // Notificar con flag para que las páginas sepan que deben re-cargar datos
   if (errores === 0) {
     notificar({ estado: 'completado', procesados, debeRecargar: true });
   } else {
@@ -105,17 +95,16 @@ export async function procesarCola() {
   }
 }
 
-// ─── Inicializar listeners del navegador ──────────────────────────────────────
 let syncInitialized = false;
 
 export function iniciarSyncManager() {
-  if (syncInitialized) return; // evitar duplicados
+  if (syncInitialized) return; 
   syncInitialized = true;
 
   window.addEventListener('online', () => {
     console.log('[Sync] Conexión recuperada. Procesando cola...');
     notificar({ estado: 'conectado' });
-    // Esperar 2s para que la conexión estabilice
+    
     setTimeout(procesarCola, 2000);
   });
 
@@ -123,18 +112,16 @@ export function iniciarSyncManager() {
     notificar({ estado: 'desconectado' });
   });
 
-  // Si ya hay conexión al arrancar, procesar cola en 4s (dar tiempo a que cargue la app)
   if (navigator.onLine) {
     setTimeout(procesarCola, 4000);
   }
 }
 
-// ─── Helper: Registrar asistencia con fallback offline ───────────────────────
 export async function registrarAsistenciaConOffline(datos) {
   if (navigator.onLine) {
     try {
       const response = await API.post('/asistencia', datos);
-      // Extraer el documento real y guardarlo en caché
+      
       const doc = extraerDocumento(response.data);
       if (doc) await guardarAsistenciaCache(Array.isArray(doc) ? doc : [doc]);
       return { data: doc || response.data, offline: false };
@@ -143,13 +130,11 @@ export async function registrarAsistenciaConOffline(datos) {
     }
   }
 
-  // Sin internet o error de red → guardar offline
   const temporal = await guardarAsistenciaTemporal(datos);
   await agregarALaCola('asistencia', 'POST', '/asistencia', datos, temporal._id);
   return { data: temporal, offline: true };
 }
 
-// ─── Helper: Registrar evaluaciones en lote con fallback offline ──────────────
 export async function registrarEvaluacionesConOffline(evaluaciones) {
   if (navigator.onLine) {
     try {
@@ -171,7 +156,6 @@ export async function registrarEvaluacionesConOffline(evaluaciones) {
   return { data: temporales, offline: true };
 }
 
-// ─── Helper: Actualizar evaluación con fallback offline ───────────────────────
 export async function actualizarEvaluacionConOffline(id, datos) {
   if (navigator.onLine) {
     try {

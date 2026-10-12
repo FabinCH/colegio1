@@ -1,13 +1,4 @@
-// ============================================
-// pages/Evaluaciones.jsx — Registro de Notas por Materia
-// ============================================
-//
-// Criterios de evaluación (RM 01/2026):
-//   Saber         → máx 45 pts (conocimiento teórico)
-//   Hacer         → máx 40 pts (práctica, aplicación)
-//   SER           → máx 10 pts (actitudes, valores)
-//   Autoevaluación → máx  5 pts (el estudiante se evalúa)
-//   TOTAL         → 100 pts
+
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -23,11 +14,10 @@ const Evaluaciones = () => {
 
   const [estudiantes, setEstudiantes] = useState([]);
   const [cargandoEstudiantes, setCargandoEstudiantes] = useState(false);
-  const [notas, setNotas] = useState({}); // { estId: { ser, saber, hacer, autoevaluacion } }
+  const [notas, setNotas] = useState({}); 
   const [guardando, setGuardando] = useState(false);
   const [guardadoOk, setGuardadoOk] = useState(false);
 
-  // Cargar cuadernos al inicio
   useEffect(() => {
     const fetchCuadernos = async () => {
       try {
@@ -40,7 +30,6 @@ const Evaluaciones = () => {
     fetchCuadernos();
   }, []);
 
-  // Cargar estudiantes INSCRITOS y notas existentes al cambiar cuaderno o trimestre
   useEffect(() => {
     if (!cuadernoSeleccionado || !trimestre) {
       setEstudiantes([]);
@@ -52,17 +41,14 @@ const Evaluaciones = () => {
       try {
         setCargandoEstudiantes(true);
 
-        // 1. Obtener estudiantes inscritos en esta materia/cuaderno
         const { data: insData } = await API.get(`/inscripciones?cuaderno=${cuadernoSeleccionado}`);
         const inscripciones = insData.data || [];
         const listaEst = inscripciones.map(ins => ins.estudiante).filter(Boolean);
         setEstudiantes(listaEst);
 
-        // 2. Obtener notas existentes para este cuaderno+trimestre
         const { data: notasData } = await API.get(`/evaluaciones?cuaderno=${cuadernoSeleccionado}&trimestre=${trimestre}`);
         const evaluacionesExistentes = notasData.data || [];
 
-        // 3. Combinar: si existe nota, cargarla; si no, inicializar vacío
         const estadoNotas = {};
         listaEst.forEach(est => {
           const notaExistente = evaluacionesExistentes.find(
@@ -94,7 +80,6 @@ const Evaluaciones = () => {
   const handleNotaChange = (estId, dimension, value) => {
     let val = value === '' ? '' : Number(value);
 
-    // Aplicar límites
     const limites = { ser: 10, saber: 45, hacer: 40, autoevaluacion: 5 };
     if (val !== '' && val > limites[dimension]) val = limites[dimension];
     if (val !== '' && val < 0) val = 0;
@@ -150,7 +135,7 @@ const Evaluaciones = () => {
         </div>
       </div>
 
-      {/* Controles de Selección */}
+      {}
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-2">📚 Cuaderno / Materia</label>
@@ -182,7 +167,7 @@ const Evaluaciones = () => {
         </div>
       </div>
 
-      {/* Leyenda de criterios */}
+      {}
       {cuadernoSeleccionado && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
@@ -202,7 +187,7 @@ const Evaluaciones = () => {
         </div>
       )}
 
-      {/* Tabla de Notas */}
+      {}
       {cuadernoSeleccionado && (
         cargandoEstudiantes ? (
           <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center text-slate-500">
@@ -210,34 +195,34 @@ const Evaluaciones = () => {
           </div>
         ) : estudiantes.length > 0 ? (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            {/* Encabezado de tabla */}
+            {}
             <div className="overflow-x-auto">
               <table className="w-full text-center border-collapse min-w-[800px]">
                 <thead>
                   <tr className="bg-slate-800 text-white text-sm">
                     <th className="p-3 text-left w-12 border-r border-slate-700">Nº</th>
                     <th className="p-3 text-left border-r border-slate-700">Apellidos y Nombres</th>
-                    {/* Saber /45 */}
+                    {}
                     <th className="p-3 border-r border-slate-700 w-24 bg-blue-800">
                       <div className="text-xs text-blue-300 font-normal">SABER</div>
                       <div className="text-lg font-bold">/45</div>
                     </th>
-                    {/* Hacer /40 */}
+                    {}
                     <th className="p-3 border-r border-slate-700 w-24 bg-emerald-800">
                       <div className="text-xs text-emerald-300 font-normal">HACER</div>
                       <div className="text-lg font-bold">/40</div>
                     </th>
-                    {/* SER /10 */}
+                    {}
                     <th className="p-3 border-r border-slate-700 w-24 bg-amber-700">
                       <div className="text-xs text-amber-200 font-normal">SER</div>
                       <div className="text-lg font-bold">/10</div>
                     </th>
-                    {/* Autoevaluación /5 */}
+                    {}
                     <th className="p-3 border-r border-slate-700 w-28 bg-purple-800">
                       <div className="text-xs text-purple-300 font-normal">AUTOEVALUACIÓN</div>
                       <div className="text-lg font-bold">/5</div>
                     </th>
-                    {/* Total /100 */}
+                    {}
                     <th className="p-3 w-28 bg-slate-600">
                       <div className="text-xs text-slate-300 font-normal">TOTAL FINAL</div>
                       <div className="text-lg font-bold">/100</div>
@@ -257,7 +242,7 @@ const Evaluaciones = () => {
                           {est.apellidos}, {est.nombres}
                           <div className="text-xs text-slate-400 font-normal">{est.rude}</div>
                         </td>
-                        {/* SABER */}
+                        {}
                         <td className="p-2 border-r border-slate-200 bg-blue-50/40">
                           <input
                             type="number" min="0" max="45"
@@ -267,7 +252,7 @@ const Evaluaciones = () => {
                             placeholder="—"
                           />
                         </td>
-                        {/* HACER */}
+                        {}
                         <td className="p-2 border-r border-slate-200 bg-emerald-50/40">
                           <input
                             type="number" min="0" max="40"
@@ -277,7 +262,7 @@ const Evaluaciones = () => {
                             placeholder="—"
                           />
                         </td>
-                        {/* SER */}
+                        {}
                         <td className="p-2 border-r border-slate-200 bg-amber-50/40">
                           <input
                             type="number" min="0" max="10"
@@ -287,7 +272,7 @@ const Evaluaciones = () => {
                             placeholder="—"
                           />
                         </td>
-                        {/* AUTOEVALUACIÓN */}
+                        {}
                         <td className="p-2 border-r border-slate-200 bg-purple-50/40">
                           <input
                             type="number" min="0" max="5"
@@ -297,7 +282,7 @@ const Evaluaciones = () => {
                             placeholder="—"
                           />
                         </td>
-                        {/* TOTAL */}
+                        {}
                         <td className={`p-3 font-extrabold text-xl transition-colors ${
                           !hayNota
                             ? 'text-slate-300'
@@ -321,7 +306,7 @@ const Evaluaciones = () => {
               </table>
             </div>
 
-            {/* Pie de tabla */}
+            {}
             <div className="p-6 bg-slate-50 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
               <div className="text-sm text-slate-500 space-y-1">
                 <p>* Nota mínima de aprobación: <strong className="text-slate-700">51 puntos</strong></p>
@@ -360,7 +345,7 @@ const Evaluaciones = () => {
         )
       )}
 
-      {/* Estado inicial: ningún cuaderno seleccionado */}
+      {}
       {!cuadernoSeleccionado && (
         <div className="bg-blue-50 border border-blue-200 text-blue-900 p-12 rounded-2xl text-center shadow-sm">
           <span className="text-5xl mb-4 block">📝</span>

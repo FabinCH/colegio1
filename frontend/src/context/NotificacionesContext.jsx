@@ -1,14 +1,4 @@
-// ============================================
-// context/NotificacionesContext.jsx
-// ============================================
-//
-// Maneja todo el ciclo de vida de las notificaciones push:
-//   1. Pedir permiso al usuario
-//   2. Registrar el Service Worker
-//   3. Suscribirse al servidor push (VAPID)
-//   4. Guardar la suscripción en el backend
-//   5. Polling del conteo de notificaciones no leídas
-//   6. Listar / marcar como leídas las notificaciones
+
 
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from './AuthContext';
@@ -22,7 +12,6 @@ export const useNotificaciones = () => {
   return ctx;
 };
 
-// ── Helpers ──────────────────────────────────────────────────
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
@@ -45,10 +34,8 @@ export const NotificacionesProvider = ({ children }) => {
 
   const pollingRef = useRef(null);
 
-  // ── Solo para director y admin ───────────────────────────
   const esDirectorOAdmin = usuario?.rol === 'director' || usuario?.rol === 'admin';
 
-  // ── Registrar Service Worker ─────────────────────────────
   useEffect(() => {
     if (!('serviceWorker' in navigator) || !estaAutenticado) return;
 
@@ -58,13 +45,12 @@ export const NotificacionesProvider = ({ children }) => {
         console.log('[Push] Service Worker registrado:', registration.scope);
         setSwRegistrado(registration);
 
-        // Escuchar mensajes del SW (navegar, etc.)
         navigator.serviceWorker.addEventListener('message', (event) => {
           if (event.data?.type === 'NAVIGATE') {
             window.location.href = event.data.url;
           }
           if (event.data?.type === 'PUSH_SUBSCRIPTION_CHANGED') {
-            // Re-suscribir automáticamente
+            
             suscribirAlPush(registration);
           }
         });
@@ -72,7 +58,6 @@ export const NotificacionesProvider = ({ children }) => {
       .catch((err) => console.error('[Push] Error registrando SW:', err));
   }, [estaAutenticado]);
 
-  // ── Suscribir al push ─────────────────────────────────────
   const suscribirAlPush = useCallback(async (registration) => {
     try {
       const { data: vapidData } = await API.get('/notificaciones/vapid-key');
@@ -83,7 +68,6 @@ export const NotificacionesProvider = ({ children }) => {
         applicationServerKey: urlBase64ToUint8Array(publicKey),
       });
 
-      // Guardar en el backend
       await API.post('/notificaciones/suscribir', { subscription: subscription.toJSON() });
       setSuscrito(true);
       console.log('[Push] Suscrito al push notifications');
@@ -95,7 +79,6 @@ export const NotificacionesProvider = ({ children }) => {
     }
   }, []);
 
-  // ── Pedir permiso ─────────────────────────────────────────
   const pedirPermiso = useCallback(async () => {
     if (!esDirectorOAdmin) return false;
     if (!('Notification' in window)) {
@@ -119,7 +102,6 @@ export const NotificacionesProvider = ({ children }) => {
     return resultado === 'granted';
   }, [esDirectorOAdmin, swRegistrado, suscribirAlPush]);
 
-  // ── Auto-suscribir si ya tenía permiso ───────────────────
   useEffect(() => {
     if (!swRegistrado || !esDirectorOAdmin) return;
     if (Notification.permission !== 'granted') return;
@@ -133,7 +115,6 @@ export const NotificacionesProvider = ({ children }) => {
     });
   }, [swRegistrado, esDirectorOAdmin, suscribirAlPush]);
 
-  // ── Cargar notificaciones ─────────────────────────────────
   const cargarNotificaciones = useCallback(async () => {
     if (!estaAutenticado) return;
     try {
@@ -150,7 +131,6 @@ export const NotificacionesProvider = ({ children }) => {
     }
   }, [estaAutenticado]);
 
-  // ── Polling del conteo cada 30s ──────────────────────────
   useEffect(() => {
     if (!estaAutenticado || !esDirectorOAdmin) return;
 
@@ -158,7 +138,7 @@ export const NotificacionesProvider = ({ children }) => {
       try {
         const { data } = await API.get('/notificaciones/conteo');
         if (data.exito) setNoLeidas(data.data.noLeidas);
-      } catch { /* silencioso */ }
+      } catch {  }
     };
 
     actualizarConteo();
@@ -169,7 +149,6 @@ export const NotificacionesProvider = ({ children }) => {
     };
   }, [estaAutenticado, esDirectorOAdmin]);
 
-  // ── Marcar una como leída ─────────────────────────────────
   const marcarLeida = useCallback(async (id) => {
     try {
       await API.patch(`/notificaciones/${id}/leer`);
@@ -182,7 +161,6 @@ export const NotificacionesProvider = ({ children }) => {
     }
   }, []);
 
-  // ── Marcar todas como leídas ─────────────────────────────
   const marcarTodasLeidas = useCallback(async () => {
     try {
       await API.patch('/notificaciones/leer-todas');
@@ -193,7 +171,6 @@ export const NotificacionesProvider = ({ children }) => {
     }
   }, []);
 
-  // ── Eliminar notificación ─────────────────────────────────
   const eliminarNotificacion = useCallback(async (id) => {
     try {
       await API.delete(`/notificaciones/${id}`);
@@ -207,7 +184,6 @@ export const NotificacionesProvider = ({ children }) => {
     }
   }, []);
 
-  // ── Toggle panel ──────────────────────────────────────────
   const abrirPanel = useCallback(() => {
     setPanelAbierto(true);
     cargarNotificaciones();

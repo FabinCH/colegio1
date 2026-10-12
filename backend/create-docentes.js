@@ -6,8 +6,7 @@ require('dotenv').config();
 const createDocentes = async () => {
   try {
     await connectDB();
-    
-    // Crear Raul
+
     const raulExists = await User.findOne({ email: 'raul@colegio.com' });
     if (!raulExists) {
       await User.create({
@@ -21,7 +20,6 @@ const createDocentes = async () => {
       console.log('El usuario Raul ya existe');
     }
 
-    // Crear Jorge
     const jorgeExists = await User.findOne({ email: 'jorge@colegio.com' });
     if (!jorgeExists) {
       await User.create({

@@ -1,26 +1,19 @@
-// ============================================
-// controllers/evaluacionController.js — Gestión de Evaluaciones
-// ============================================
+
 
 const Evaluacion = require('../models/Evaluacion');
 const CuadernoPedagogico = require('../models/CuadernoPedagogico');
 const Student = require('../models/Student');
 const { crearYEnviarNotificacion } = require('./notificacionController');
 
-// ── Umbrales de alerta ──────────────────────────────────────
-const UMBRAL_REPROBACION = 51;  // nota < 51 → REPROBADO
-const UMBRAL_PELIGRO     = 65;  // nota < 65 → EN PELIGRO
+const UMBRAL_REPROBACION = 51;  
+const UMBRAL_PELIGRO     = 65;  
 
-// ── Helper: Verificar nota y notificar al director ──────────
-// Se ejecuta en background (no bloquea la respuesta al docente)
 async function verificarYNotificar(evaluacion) {
   try {
     const total = evaluacion.total;
 
-    // Solo alertar si la nota es baja
     if (total >= UMBRAL_PELIGRO) return;
 
-    // Obtener datos del estudiante y cuaderno para el mensaje
     const [estudiante, cuaderno] = await Promise.all([
       Student.findById(evaluacion.estudiante).select('nombres apellidos').lean(),
       CuadernoPedagogico.findById(evaluacion.cuaderno)
@@ -63,12 +56,11 @@ async function verificarYNotificar(evaluacion) {
 
     console.log(`[ALERTA] Notificación enviada: ${nombreEstudiante} → ${total}/100 en ${materia}`);
   } catch (error) {
-    // No fallar silenciosamente, pero no interrumpir el flujo principal
+    
     console.error('[ALERTA] Error al enviar notificación de nota baja:', error.message);
   }
 }
 
-// REGISTRAR evaluación de un estudiante — POST /api/evaluaciones
 const registrarEvaluacion = async (req, res) => {
   try {
     const { cuaderno, trimestre, estudiante, ser, saber, hacer, autoevaluacion, observaciones } = req.body;
@@ -84,7 +76,6 @@ const registrarEvaluacion = async (req, res) => {
       observaciones,
     });
 
-    // Enviar alerta al director si la nota es baja (en background)
     verificarYNotificar(evaluacion).catch(() => {});
 
     res.status(201).json({
@@ -108,19 +99,16 @@ const registrarEvaluacion = async (req, res) => {
   }
 };
 
-// REGISTRAR evaluaciones en lote (todos los estudiantes de un curso)
-// POST /api/evaluaciones/lote
 const registrarEvaluacionesLote = async (req, res) => {
   try {
     const { cuaderno, trimestre, evaluaciones } = req.body;
-    // evaluaciones = [{ estudiante, ser, saber, hacer, autoevaluacion }, ...]
 
     const resultados = [];
     const errores = [];
 
     for (const item of evaluaciones) {
       try {
-        // Intentar crear o actualizar (upsert)
+        
         const evaluacion = await Evaluacion.findOneAndUpdate(
           { cuaderno, trimestre, estudiante: item.estudiante },
           {
@@ -139,7 +127,6 @@ const registrarEvaluacionesLote = async (req, res) => {
       }
     }
 
-    // Verificar todas las evaluaciones en background y notificar al director
     const alertasEnBackground = resultados.map((ev) =>
       verificarYNotificar(ev).catch(() => {})
     );
@@ -157,7 +144,6 @@ const registrarEvaluacionesLote = async (req, res) => {
   }
 };
 
-// OBTENER evaluaciones por cuaderno y trimestre — GET /api/evaluaciones
 const obtenerEvaluaciones = async (req, res) => {
   try {
     const { cuaderno, trimestre } = req.query;
@@ -176,8 +162,6 @@ const obtenerEvaluaciones = async (req, res) => {
   }
 };
 
-// CENTRALIZADOR — Resumen de notas de todos los estudiantes
-// GET /api/evaluaciones/centralizador?cuaderno=xxx&trimestre=1
 const centralizador = async (req, res) => {
   try {
     const { cuaderno, trimestre } = req.query;
@@ -196,7 +180,6 @@ const centralizador = async (req, res) => {
       .populate('estudiante', 'nombres apellidos rude')
       .sort({ trimestre: 1 });
 
-    // Agrupar por estudiante
     const centralizadorData = {};
     evaluaciones.forEach((ev) => {
       const estId = ev.estudiante._id.toString();
@@ -215,7 +198,6 @@ const centralizador = async (req, res) => {
       };
     });
 
-    // Calcular promedio anual para cada estudiante
     Object.values(centralizadorData).forEach((item) => {
       const trims = Object.values(item.trimestres);
       if (trims.length > 0) {
@@ -235,7 +217,6 @@ const centralizador = async (req, res) => {
   }
 };
 
-// ACTUALIZAR evaluación — PUT /api/evaluaciones/:id
 const actualizarEvaluacion = async (req, res) => {
   try {
     const { ser, saber, hacer, autoevaluacion, observaciones } = req.body;
@@ -245,17 +226,14 @@ const actualizarEvaluacion = async (req, res) => {
       return res.status(404).json({ exito: false, mensaje: 'Evaluación no encontrada' });
     }
 
-    // Actualizar solo los campos enviados
     if (ser !== undefined) evaluacion.ser = ser;
     if (saber !== undefined) evaluacion.saber = saber;
     if (hacer !== undefined) evaluacion.hacer = hacer;
     if (autoevaluacion !== undefined) evaluacion.autoevaluacion = autoevaluacion;
     if (observaciones !== undefined) evaluacion.observaciones = observaciones;
 
-    // El total se recalcula automáticamente en el pre-save
     await evaluacion.save();
 
-    // Verificar si la nota actualizada es baja y notificar
     verificarYNotificar(evaluacion).catch(() => {});
 
     res.json({
@@ -273,7 +251,6 @@ const actualizarEvaluacion = async (req, res) => {
   }
 };
 
-// ELIMINAR evaluación — DELETE /api/evaluaciones/:id
 const eliminarEvaluacion = async (req, res) => {
   try {
     const evaluacion = await Evaluacion.findByIdAndDelete(req.params.id);

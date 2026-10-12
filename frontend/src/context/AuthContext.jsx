@@ -1,12 +1,4 @@
-// ============================================
-// context/AuthContext.jsx — Estado Global de Autenticación
-// ============================================
-//
-// OFFLINE FIX:
-//   - Si hay token + usuario en localStorage → NO muestra pantalla de carga
-//   - La verificación con el servidor ocurre en segundo plano
-//   - Solo invalida la sesión con 401/403 explícito del servidor
-//   - Error de red = mantener sesión local intacta
+
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import API from '../api/axiosConfig';
@@ -19,13 +11,12 @@ export const useAuth = () => {
   return context;
 };
 
-// ── Leer datos guardados de localStorage ────────────────────────────────────
 function leerUsuarioLocal() {
   try {
     const s = localStorage.getItem('usuario');
     const usr = s ? JSON.parse(s) : null;
     if (!usr) return null;
-    // Si el objeto guardado no tiene rol, intentar recuperarlo del JWT
+    
     if (!usr.rol) {
       try {
         const tk = localStorage.getItem('token');
@@ -33,7 +24,7 @@ function leerUsuarioLocal() {
           const payload = JSON.parse(atob(tk.split('.')[1]));
           if (payload.rol) usr.rol = payload.rol;
         }
-      } catch { /* ignorar */ }
+      } catch {  }
     }
     return usr;
   } catch { return null; }
@@ -50,13 +41,10 @@ export const AuthProvider = ({ children }) => {
   const [usuario, setUsuario] = useState(usuarioInicial);
   const [token, setToken]     = useState(tokenInicial);
 
-  // Si ya tenemos token + usuario en cache → NO mostrar pantalla de carga
-  // Solo mostramos carga si tenemos token pero NO datos de usuario (primera vez)
   const [cargando, setCargando] = useState(
     !!tokenInicial && !usuarioInicial
   );
 
-  // ── Verificar sesión con el servidor (en segundo plano) ───────────────────
   useEffect(() => {
     const verificar = async () => {
       const tk = leerTokenLocal();
@@ -65,23 +53,20 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      // Sin internet → intentar caché local o decodificar el JWT
       if (!navigator.onLine) {
         const usr = leerUsuarioLocal();
         if (usr) {
           setUsuario(usr);
           setToken(tk);
         } else {
-          // No hay cache pero sí token → intentar decodificar JWT para datos básicos
-          // (cubre el caso de usuarios que iniciaron sesión antes de que se guardara 'usuario')
+
           try {
             const payload = JSON.parse(atob(tk.split('.')[1]));
-            // El JWT payload tiene: { id, rol } según authController.js
-            // Usamos esos datos mínimos para mantener la sesión offline
+
             const usuarioFromJWT = {
-              _id:    payload.id,   // el backend guarda como 'id' en el JWT
+              _id:    payload.id,   
               id:     payload.id,
-              nombre: 'Usuario',   // no está en el JWT, se completará al conectarse
+              nombre: 'Usuario',   
               email:  '',
               rol:    payload.rol || 'docente',
             };
@@ -89,17 +74,16 @@ export const AuthProvider = ({ children }) => {
             setToken(tk);
             localStorage.setItem('usuario', JSON.stringify(usuarioFromJWT));
           } catch {
-            // JWT indecodificable
+            
           }
         }
         setCargando(false);
         return;
       }
 
-      // Con internet → verificar con servidor
       try {
         const { data } = await API.get('/auth/perfil');
-        // El backend devuelve { id, nombre, email, rol } (usa 'id' no '_id')
+        
         const perfil = data.data.usuario;
         const usr = { ...perfil, _id: perfil.id || perfil._id };
         setUsuario(usr);
@@ -108,13 +92,13 @@ export const AuthProvider = ({ children }) => {
       } catch (error) {
         const status = error.response?.status;
         if (status === 401 || status === 403) {
-          // Token inválido/expirado → limpiar todo
+          
           localStorage.removeItem('token');
           localStorage.removeItem('usuario');
           setToken(null);
           setUsuario(null);
         } else {
-          // Error de red u otro → mantener sesión local
+          
           const usr = leerUsuarioLocal();
           if (usr) setUsuario(usr);
         }
@@ -123,17 +107,15 @@ export const AuthProvider = ({ children }) => {
       }
     };
 
-    // Solo verificar si NO teníamos datos cacheados (evita delay innecesario)
     if (cargando) {
       verificar();
     } else if (navigator.onLine && token) {
-      // Verificación silenciosa en background (sin mostrar carga)
+      
       verificar();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  
   }, []);
 
-  // Re-verificar al recuperar conexión
   useEffect(() => {
     const onOnline = async () => {
       const tk = leerTokenLocal();
@@ -144,13 +126,12 @@ export const AuthProvider = ({ children }) => {
         const usr = { ...perfil, _id: perfil.id || perfil._id };
         setUsuario(usr);
         localStorage.setItem('usuario', JSON.stringify(usr));
-      } catch { /* silencioso */ }
+      } catch {  }
     };
     window.addEventListener('online', onOnline);
     return () => window.removeEventListener('online', onOnline);
   }, []);
 
-  // ── Login ──────────────────────────────────────────────────────────────────
   const login = async (email, password) => {
     if (!navigator.onLine) {
       return {
@@ -171,7 +152,6 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
-  // ── Registro ───────────────────────────────────────────────────────────────
   const register = async (nombre, email, password, rol) => {
     const { data } = await API.post('/auth/register', { nombre, email, password, rol });
     if (data.exito) {
@@ -185,7 +165,6 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
-  // ── Logout ─────────────────────────────────────────────────────────────────
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('usuario');

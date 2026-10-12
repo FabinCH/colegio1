@@ -7,28 +7,26 @@ const Asistencia = require('./models/Asistencia');
 const connectDB = require('./config/db');
 require('dotenv').config();
 
-// Definición de feriados o vacaciones pedagógicas a omitir (YYYY-MM-DD en hora local)
 const FERIADOS_Y_VACACIONES = new Set([
-  // Carnaval (Feb 16, 17) - opcional, pero dentro del rango
+  
   '2026-02-16', '2026-02-17',
-  // Viernes Santo
+  
   '2026-04-03',
-  // Día del Trabajo
+  
   '2026-05-01',
-  // Corpus Christi
+  
   '2026-06-04',
-  // Año Nuevo Andino Amazónico
+  
   '2026-06-21',
-  // Descanso Pedagógico de Invierno (2 semanas: 6 de julio al 17 de julio de 2026)
+  
   '2026-07-06', '2026-07-07', '2026-07-08', '2026-07-09', '2026-07-10',
   '2026-07-13', '2026-07-14', '2026-07-15', '2026-07-16', '2026-07-17',
-  // Día de la Independencia de Bolivia
+  
   '2026-08-06',
-  // Día de los Difuntos (Todos Santos)
+  
   '2026-11-02'
 ]);
 
-// Función para formatear YYYY-MM-DD
 function formatDateKey(d) {
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -36,14 +34,13 @@ function formatDateKey(d) {
   return `${year}-${month}-${day}`;
 }
 
-// Obtener todas las fechas válidas (Lunes a Viernes) excluyendo feriados si aplica
 function getHabilesDates(startDateStr, endDateStr, filterFeriados = true) {
   const dates = [];
   let curr = new Date(startDateStr + 'T12:00:00Z');
   const end = new Date(endDateStr + 'T12:00:00Z');
 
   while (curr <= end) {
-    const dayOfWeek = curr.getUTCDay(); // 0 = Sun, 1 = Mon, ... 6 = Sat
+    const dayOfWeek = curr.getUTCDay(); 
     if (dayOfWeek >= 1 && dayOfWeek <= 5) {
       const key = formatDateKey(new Date(curr.getTime()));
       if (!filterFeriados || !FERIADOS_Y_VACACIONES.has(key)) {
@@ -55,11 +52,9 @@ function getHabilesDates(startDateStr, endDateStr, filterFeriados = true) {
   return dates;
 }
 
-// Generador de valor aleatorio realista de asistencia
-// Asiste ~88%, Atraso ~4%, Licencia ~4%, Falta ~4%
 function getRandomValor(studentIndex, dateIndex) {
   const rand = Math.random();
-  // Hacer que algunos estudiantes específicos tengan un poquito más de faltas o atrasos para realismo
+  
   if (studentIndex % 4 === 0) {
     if (rand < 0.10) return 'F';
     if (rand < 0.18) return 'R';
@@ -77,7 +72,6 @@ const seedAsistenciasCalendario = async () => {
     await connectDB();
     console.log('Conectado a BD. Iniciando generación de asistencias según calendario escolar Bolivia 2026...');
 
-    // 1. Obtener todos los cuadernos pedagógicos
     const cuadernos = await CuadernoPedagogico.find().populate({
       path: 'curso',
       populate: { path: 'estudiantes' }
@@ -85,10 +79,6 @@ const seedAsistenciasCalendario = async () => {
 
     console.log(`Se encontraron ${cuadernos.length} cuadernos pedagógicos.`);
 
-    // Definición de rangos de trimestres según indicación del usuario
-    // T1: 2 de febrero al 8 de mayo (66 días hábiles approx)
-    // T2: 11 de mayo al 31 de agosto (68 días hábiles approx con descanso de invierno)
-    // T3: 1 de septiembre al 2 de diciembre (66 días hábiles approx)
     const periodos = [
       { trimestre: 1, inicio: '2026-02-02', fin: '2026-05-08' },
       { trimestre: 2, inicio: '2026-05-11', fin: '2026-08-31' },
@@ -106,7 +96,6 @@ const seedAsistenciasCalendario = async () => {
       const estudiantes = cuaderno.curso.estudiantes;
       console.log(`\n📌 Procesando Cuaderno: ${cuaderno._id} | Docente: ${cuaderno.docente ? cuaderno.docente.nombre : 'Sin docente'} | Curso: ${cuaderno.curso.grado} ${cuaderno.curso.paralelo} (${estudiantes.length} estudiantes)`);
 
-      // Eliminar asistencias previas de este cuaderno para evitar choques con el índice único (cuaderno, fecha)
       await Asistencia.deleteMany({ cuaderno: cuaderno._id });
       console.log(`   - Asistencias previas eliminadas.`);
 

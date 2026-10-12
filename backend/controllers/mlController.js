@@ -1,32 +1,15 @@
-// ============================================================
-// backend/controllers/mlController.js
-// ============================================================
-//
-// PROPÓSITO:
-//   Expone los resultados del motor ML como endpoints REST.
-//   Todas las respuestas siguen el formato estándar del sistema:
-//   { exito, mensaje, data }
-//
-// ENDPOINTS:
-//   GET /api/ml/predicciones/estudiantes
-//   GET /api/ml/predicciones/estudiantes/:id
-//   GET /api/ml/predicciones/cursos
-//   GET /api/ml/predicciones/cursos/:id
-//   GET /api/ml/resumen
-// ============================================================
+
 
 'use strict';
 
 const mlEngine = require('../ml/mlEngine');
 
-// ── Helper de respuesta ───────────────────────────────────────
 const ok  = (res, data, mensaje = 'OK', status = 200) =>
   res.status(status).json({ exito: true, mensaje, data });
 
 const err = (res, mensaje, status = 500) =>
   res.status(status).json({ exito: false, mensaje });
 
-// ── Extraer filtros de query params ───────────────────────────
 function extraerFiltros(query) {
   const filtros = {};
   if (query.cursoId)   filtros.cursoId   = query.cursoId;
@@ -36,16 +19,11 @@ function extraerFiltros(query) {
   return filtros;
 }
 
-// ============================================================
-// GET /api/ml/predicciones/estudiantes
-// Params opcionales: ?cursoId=&materiaId=&trimestre=&riesgo=
-// ============================================================
 exports.getPrediccionesEstudiantes = async (req, res) => {
   try {
     const filtros = extraerFiltros(req.query);
     let predicciones = await mlEngine.getPrediccionesEstudiantes(filtros);
 
-    // Filtro adicional por nivel de riesgo (post-cálculo)
     if (req.query.riesgo) {
       predicciones = predicciones.filter(
         (p) => p.riesgo_academico === req.query.riesgo
@@ -69,9 +47,6 @@ exports.getPrediccionesEstudiantes = async (req, res) => {
   }
 };
 
-// ============================================================
-// GET /api/ml/predicciones/estudiantes/:id
-// ============================================================
 exports.getPrediccionEstudiante = async (req, res) => {
   try {
     const { id } = req.params;
@@ -86,7 +61,6 @@ exports.getPrediccionEstudiante = async (req, res) => {
       );
     }
 
-    // Calcular resumen consolidado del estudiante
     const peso = { alto: 3, medio: 2, bajo: 1 };
     const peorRiesgo = predicciones.reduce((prev, curr) =>
       peso[curr.riesgo_academico] > peso[prev.riesgo_academico] ? curr : prev
@@ -132,9 +106,6 @@ exports.getPrediccionEstudiante = async (req, res) => {
   }
 };
 
-// ============================================================
-// GET /api/ml/predicciones/cursos
-// ============================================================
 exports.getPrediccionesCursos = async (req, res) => {
   try {
     const filtros = extraerFiltros(req.query);
@@ -156,9 +127,6 @@ exports.getPrediccionesCursos = async (req, res) => {
   }
 };
 
-// ============================================================
-// GET /api/ml/predicciones/cursos/:id
-// ============================================================
 exports.getPrediccionCurso = async (req, res) => {
   try {
     const { id } = req.params;
@@ -180,9 +148,6 @@ exports.getPrediccionCurso = async (req, res) => {
   }
 };
 
-// ============================================================
-// GET /api/ml/resumen
-// ============================================================
 exports.getResumen = async (req, res) => {
   try {
     const filtros = extraerFiltros(req.query);

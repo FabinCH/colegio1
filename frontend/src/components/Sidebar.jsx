@@ -1,11 +1,8 @@
-// ============================================
-// components/Sidebar.jsx — Menú lateral mejorado
-// ============================================
+
 
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-// Secciones SIN filtro por roles (el filtro se aplica en el render)
 const menuSections = [
   { label: 'Inicio', items: [
     { path: '/dashboard', label: 'Resumen general', icon: '📊' },
@@ -43,7 +40,6 @@ const Sidebar = ({ collapsed, mobileOpen, onNavigate }) => {
     ? usuario.nombre.split(' ').slice(0, 2).map((n) => n[0]).join('').toUpperCase()
     : 'U';
 
-  // Rol real del usuario — primero del objeto usuario, luego del JWT como fallback
   const rolDesdeToken = (() => {
     try {
       const tk = localStorage.getItem('token');
@@ -54,7 +50,6 @@ const Sidebar = ({ collapsed, mobileOpen, onNavigate }) => {
   })();
   const rolActual = String(usuario?.rol || rolDesdeToken || '').toLowerCase().trim();
 
-  // Filtrar secciones según el rol
   const seccionesVisibles = menuSections.map((section) => ({
     ...section,
     items: section.items.filter((item) => !item.soloRoles || item.soloRoles.includes(rolActual)),
@@ -62,7 +57,21 @@ const Sidebar = ({ collapsed, mobileOpen, onNavigate }) => {
 
   return (
     <aside id="main-sidebar" className={`sidebar ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'mobile-open' : ''}`}>
-      {/* Navegación por secciones */}
+      <div className="sidebar-mobile-header">
+        <div className="sidebar-mobile-title">
+          <span>📋</span>
+          <span>Menú</span>
+        </div>
+        <button
+          type="button"
+          className="sidebar-mobile-close-btn"
+          onClick={onNavigate}
+          aria-label="Cerrar menú"
+        >
+          ✕
+        </button>
+      </div>
+
       <nav className="sidebar-nav" aria-label="Navegación principal">
         {seccionesVisibles.map((section) => (
           <div key={section.label}>
@@ -80,7 +89,7 @@ const Sidebar = ({ collapsed, mobileOpen, onNavigate }) => {
               >
                 <span className="sidebar-link-icon">{item.icon}</span>
                 <span className="sidebar-link-text">{item.label}</span>
-                {/* Tooltip visible solo cuando está colapsado */}
+                {}
                 <span className="sidebar-link-tooltip" aria-hidden="true">{item.icon} {item.label}</span>
               </NavLink>
             ))}
@@ -88,7 +97,7 @@ const Sidebar = ({ collapsed, mobileOpen, onNavigate }) => {
         ))}
       </nav>
 
-      {/* Usuario y logout */}
+      {}
       <div className="sidebar-footer">
         <div className="sidebar-user" title={collapsed ? usuario?.nombre : ''}>
           <div className="sidebar-avatar">{initials}</div>

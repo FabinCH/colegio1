@@ -1,6 +1,4 @@
-// ============================================
-// components/Footer.jsx — Pie de página con redes sociales
-// ============================================
+
 
 const socialLinks = [
   { icon: '📘', label: 'Facebook', href: 'https://facebook.com', color: '#1877f2' },
@@ -15,7 +13,7 @@ const Footer = () => {
 
   return (
     <footer className="app-footer">
-      {/* Izquierda: marca */}
+      {}
       <div className="footer-left">
         <span className="footer-logo">🏫</span>
         <div className="footer-brand-text">
@@ -24,12 +22,12 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* Centro: badge normativa */}
+      {}
       <div className="footer-center">
         <span className="footer-badge">RM 01/2026</span>
       </div>
 
-      {/* Derecha: redes sociales */}
+      {}
       <div className="footer-right">
         {socialLinks.map((social) => (
           <a

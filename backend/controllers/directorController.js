@@ -1,10 +1,4 @@
-// ============================================
-// controllers/directorController.js — Panel del Director
-// ============================================
-//
-// ¿QUÉ HACE ESTE ARCHIVO?
-// Centraliza las funciones del Director (aprobación de cuadernos,
-// reportes estadísticos, rendimiento, exportaciones).
+
 
 const User = require('../models/User');
 const Student = require('../models/Student');
@@ -14,8 +8,6 @@ const CuadernoPedagogico = require('../models/CuadernoPedagogico');
 const RegistroAsistencia = require('../models/Asistencia');
 const Calificacion = require('../models/Evaluacion');
 
-// 1. OBTENER REPORTES POR CURSO
-// Retorna la cantidad de estudiantes y promedios por curso
 exports.obtenerReportesPorCurso = async (req, res) => {
   try {
     const cursos = await Curso.find().lean();
@@ -23,8 +15,7 @@ exports.obtenerReportesPorCurso = async (req, res) => {
     
     for (const curso of cursos) {
       const estudiantes = await Student.countDocuments({ curso: curso._id });
-      // Aquí se calcularía el promedio del curso usando las calificaciones
-      // Simulado para MVP si no hay datos complejos
+
       data.push({
         _id: curso._id,
         nombre: curso.nombre,
@@ -32,7 +23,7 @@ exports.obtenerReportesPorCurso = async (req, res) => {
         grado: curso.grado,
         paralelo: curso.paralelo,
         totalEstudiantes: estudiantes,
-        promedioGeneral: Math.floor(Math.random() * 20) + 70 // Simulación
+        promedioGeneral: Math.floor(Math.random() * 20) + 70 
       });
     }
     
@@ -43,7 +34,6 @@ exports.obtenerReportesPorCurso = async (req, res) => {
   }
 };
 
-// 2. OBTENER RENDIMIENTO POR DOCENTE
 exports.obtenerRendimientoDocente = async (req, res) => {
   try {
     const docentes = await User.find({ rol: 'docente' }).select('nombre email').lean();
@@ -70,7 +60,6 @@ exports.obtenerRendimientoDocente = async (req, res) => {
   }
 };
 
-// 3. OBTENER ESTADÍSTICAS DE ASISTENCIA
 exports.obtenerEstadisticasAsistencia = async (req, res) => {
   try {
     const asistencias = await RegistroAsistencia.aggregate([
@@ -80,8 +69,7 @@ exports.obtenerEstadisticasAsistencia = async (req, res) => {
           total: { $sum: 1 }
       }}
     ]);
-    
-    // Normalizar datos (presente, falta, atraso, licencia)
+
     const formato = { presente: 0, falta: 0, atraso: 0, licencia: 0 };
     asistencias.forEach(a => { formato[a._id] = a.total; });
     
@@ -92,19 +80,16 @@ exports.obtenerEstadisticasAsistencia = async (req, res) => {
   }
 };
 
-// 4. OBTENER RANKING DE NOTAS (Top 10 Estudiantes)
 exports.obtenerRankingNotas = async (req, res) => {
   try {
-    // Simulando ranking global (MVP)
-    // En un sistema real se agrupa de la colección de Calificaciones.
+
     const estudiantes = await Student.find().populate('curso', 'nombre nivel grado paralelo').lean();
-    
-    // Asignando promedios simulados para el prototipo si no hay notas suficientes
+
     const ranking = estudiantes.map(e => ({
       _id: e._id,
       nombre: `${e.nombre} ${e.apellidos}`,
       curso: e.curso ? `${e.curso.grado} ${e.curso.nivel} ${e.curso.paralelo}` : 'N/A',
-      promedio: Math.floor(Math.random() * 30) + 70 // Simulado 70-100
+      promedio: Math.floor(Math.random() * 30) + 70 
     })).sort((a, b) => b.promedio - a.promedio).slice(0, 10);
     
     res.json({ exito: true, data: ranking });
@@ -114,7 +99,6 @@ exports.obtenerRankingNotas = async (req, res) => {
   }
 };
 
-// 5. LISTAR CUADERNOS PARA SUPERVISIÓN
 exports.listarCuadernosSupervision = async (req, res) => {
   try {
     const cuadernos = await CuadernoPedagogico.find()
@@ -130,11 +114,10 @@ exports.listarCuadernosSupervision = async (req, res) => {
   }
 };
 
-// 6. SUPERVISAR CUADERNO (Aprobar o Rechazar)
 exports.supervisarCuaderno = async (req, res) => {
   try {
     const { id } = req.params;
-    const { estado, comentario } = req.body; // 'aprobado' o 'rechazado'
+    const { estado, comentario } = req.body; 
     
     if (!['aprobado', 'rechazado', 'pendiente'].includes(estado)) {
       return res.status(400).json({ exito: false, mensaje: 'Estado inválido' });
@@ -159,13 +142,10 @@ exports.supervisarCuaderno = async (req, res) => {
   }
 };
 
-// 7. EXPORTAR CENTRALIZADOR Y GENERAR REPORTE MINISTERIAL (SIGED)
-// Retorna JSON consolidado para que el frontend lo descargue como CSV/Excel
 exports.generarExportacionSIGED = async (req, res) => {
   try {
-    const { tipo } = req.params; // 'centralizador' o 'ministerial'
-    
-    // Obtenemos todos los estudiantes matriculados
+    const { tipo } = req.params; 
+
     const estudiantes = await Student.find().populate('curso').lean();
     
     if (tipo === 'centralizador') {
@@ -174,8 +154,8 @@ exports.generarExportacionSIGED = async (req, res) => {
         NombreCompleto: `${e.apellidos} ${e.nombre}`.toUpperCase(),
         Nivel: e.curso ? e.curso.nivel : 'S/A',
         Grado: e.curso ? e.curso.grado : 'S/A',
-        PromedioFinal: Math.floor(Math.random() * 40) + 60, // Simulación de promedio
-        Estado: 'APROBADO' // Simulación
+        PromedioFinal: Math.floor(Math.random() * 40) + 60, 
+        Estado: 'APROBADO' 
       }));
       return res.json({ exito: true, tipo: 'Centralizador de Notas', data: datosCentralizador });
     }
@@ -185,8 +165,8 @@ exports.generarExportacionSIGED = async (req, res) => {
         TotalEstudiantes: estudiantes.length,
         Hombres: estudiantes.filter(e => e.genero === 'masculino').length,
         Mujeres: estudiantes.filter(e => e.genero === 'femenino').length,
-        Aprobados: estudiantes.length - 2, // Simulación
-        Reprobados: 2, // Simulación
+        Aprobados: estudiantes.length - 2, 
+        Reprobados: 2, 
         Abandono: 0
       };
       return res.json({ exito: true, tipo: 'Reporte Ministerial SIGED', data: [stats] });

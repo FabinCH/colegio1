@@ -1,6 +1,4 @@
-// ============================================
-// pages/Login.jsx — Página de Inicio de Sesión
-// ============================================
+
 
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -37,7 +35,7 @@ const Login = () => {
     <div className="auth-page">
       <div className="auth-container">
 
-        {/* ── Panel izquierdo decorativo ── */}
+        {}
         <div className="auth-banner">
           <div className="auth-banner-content">
             <div className="auth-banner-icon-wrap">📋</div>
@@ -62,7 +60,7 @@ const Login = () => {
           </div>
         </div>
 
-        {/* ── Panel derecho: formulario ── */}
+        {}
         <div className="auth-form-panel">
           <div className="auth-form-container">
             <h1 className="auth-title">Iniciar Sesión</h1>
@@ -76,7 +74,7 @@ const Login = () => {
             )}
 
             <form onSubmit={handleSubmit} className="auth-form">
-              {/* Correo */}
+              {}
               <div className="form-group">
                 <label htmlFor="email" className="form-label form-label-required">
                   📧 Correo Electrónico
@@ -93,7 +91,7 @@ const Login = () => {
                 />
               </div>
 
-              {/* Contraseña */}
+              {}
               <div className="form-group">
                 <label htmlFor="password" className="form-label form-label-required">
                   🔒 Contraseña
@@ -134,7 +132,7 @@ const Login = () => {
                 </div>
               </div>
 
-              {/* Botón submit */}
+              {}
               <button
                 type="submit"
                 disabled={cargando}

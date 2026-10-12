@@ -1,22 +1,12 @@
-// ============================================
-// controllers/studentController.js — CRUD de Estudiantes
-// ============================================
-//
-// ¿QUÉ ES CRUD?
-// Create (crear), Read (leer), Update (actualizar), Delete (borrar).
-// Son las 4 operaciones básicas que se hacen con cualquier dato.
+
 
 const Student = require('../models/Student');
 const CuadernoPedagogico = require('../models/CuadernoPedagogico');
 const Inscripcion = require('../models/Inscripcion');
 
-// ================================================
-// CREAR un nuevo estudiante
-// ================================================
-// POST /api/estudiantes
 const crearEstudiante = async (req, res) => {
   try {
-    // Los docentes NO pueden crear estudiantes
+    
     if (req.usuario.rol === 'docente') {
       return res.status(403).json({
         exito: false,
@@ -36,7 +26,7 @@ const crearEstudiante = async (req, res) => {
     });
   } catch (error) {
     if (error.code === 11000) {
-      // Error de clave duplicada (RUDE repetido)
+      
       return res.status(400).json({
         exito: false,
         mensaje: 'Ya existe un estudiante con ese código RUDE',
@@ -55,27 +45,18 @@ const crearEstudiante = async (req, res) => {
   }
 };
 
-// ================================================
-// OBTENER todos los estudiantes (con paginación y búsqueda)
-// ================================================
-// GET /api/estudiantes?page=1&limit=20&buscar=texto
-//
-// RESTRICCIÓN DE ROL:
-// - admin/director: ven TODOS los estudiantes
-// - docente: solo ve estudiantes inscritos en sus materias (cuadernos)
 const obtenerEstudiantes = async (req, res) => {
   try {
     const { page, limit, buscar } = req.query;
 
-    // ── Si es docente, obtener solo IDs de estudiantes inscritos en sus cuadernos ──
     let idsEstudiantesPermitidos = null;
     if (req.usuario.rol === 'docente') {
-      // 1. Buscar cuadernos del docente
+      
       const cuadernos = await CuadernoPedagogico.find({ docente: req.usuario.id }).select('_id');
       const cuadernoIds = cuadernos.map(c => c._id);
 
       if (cuadernoIds.length === 0) {
-        // El docente no tiene cuadernos → no ve ningún estudiante
+        
         return res.json({
           exito: true,
           cantidad: 0,
@@ -86,7 +67,6 @@ const obtenerEstudiantes = async (req, res) => {
         });
       }
 
-      // 2. Buscar inscripciones en esos cuadernos
       const inscripciones = await Inscripcion.find({ cuaderno: { $in: cuadernoIds } }).select('estudiante');
       idsEstudiantesPermitidos = [...new Set(inscripciones.map(i => i.estudiante.toString()))];
 
@@ -102,10 +82,8 @@ const obtenerEstudiantes = async (req, res) => {
       }
     }
 
-    // Construir filtro de búsqueda por CI o RUDE
     let filtro = {};
 
-    // Si es docente, agregar filtro de IDs permitidos
     if (idsEstudiantesPermitidos) {
       filtro._id = { $in: idsEstudiantesPermitidos };
     }
@@ -120,7 +98,7 @@ const obtenerEstudiantes = async (req, res) => {
           { apellidos: { $regex: texto, $options: 'i' } },
         ],
       };
-      // Combinar filtro de docente con búsqueda
+      
       if (idsEstudiantesPermitidos) {
         filtro = { $and: [{ _id: { $in: idsEstudiantesPermitidos } }, busquedaFiltro] };
       } else {
@@ -128,7 +106,6 @@ const obtenerEstudiantes = async (req, res) => {
       }
     }
 
-    // Si envían page y limit, paginar. Si no, retornar todos.
     if (page && limit) {
       const pag = Math.max(1, Number(page));
       const lim = Math.min(100, Math.max(1, Number(limit)));
@@ -149,7 +126,6 @@ const obtenerEstudiantes = async (req, res) => {
       });
     }
 
-    // Sin paginación: retornar todos
     const estudiantes = await Student.find(filtro).sort({ apellidos: 1, nombres: 1 });
 
     res.json({
@@ -163,10 +139,6 @@ const obtenerEstudiantes = async (req, res) => {
   }
 };
 
-// ================================================
-// OBTENER un estudiante por ID
-// ================================================
-// GET /api/estudiantes/:id
 const obtenerEstudiante = async (req, res) => {
   try {
     const estudiante = await Student.findById(req.params.id);
@@ -185,18 +157,14 @@ const obtenerEstudiante = async (req, res) => {
   }
 };
 
-// ================================================
-// ACTUALIZAR un estudiante
-// ================================================
-// PUT /api/estudiantes/:id
 const actualizarEstudiante = async (req, res) => {
   try {
     const estudiante = await Student.findByIdAndUpdate(
       req.params.id,
       req.body,
       {
-        new: true, // Retorna el documento ACTUALIZADO (no el viejo)
-        runValidators: true, // Ejecuta las validaciones del schema
+        new: true, 
+        runValidators: true, 
       }
     );
 
@@ -226,10 +194,6 @@ const actualizarEstudiante = async (req, res) => {
   }
 };
 
-// ================================================
-// ELIMINAR un estudiante
-// ================================================
-// DELETE /api/estudiantes/:id
 const eliminarEstudiante = async (req, res) => {
   try {
     const estudiante = await Student.findByIdAndDelete(req.params.id);

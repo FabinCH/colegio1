@@ -1,22 +1,10 @@
-// ============================================
-// api/offlineDB.js — Base de datos local (IndexedDB)
-// ============================================
-//
-// ¿QUÉ HACE ESTE ARCHIVO?
-// Maneja el almacenamiento LOCAL en el navegador usando IndexedDB.
-// Permite guardar asistencia y evaluaciones aunque no haya internet.
-//
-// STORES (tablas):
-//   - asistencia_cache   → copia local de asistencias consultadas
-//   - evaluacion_cache   → copia local de evaluaciones consultadas
-//   - sync_queue         → operaciones pendientes de sincronizar con el servidor
+
 
 const DB_NAME = 'colegio_offline_db';
 const DB_VERSION = 1;
 
 let db = null;
 
-// ─── Abrir / inicializar la base de datos ───────────────────────────────────
 export function openDB() {
   return new Promise((resolve, reject) => {
     if (db) return resolve(db);
@@ -26,7 +14,6 @@ export function openDB() {
     request.onupgradeneeded = (event) => {
       const database = event.target.result;
 
-      // Store: caché de asistencia (por cuaderno+trimestre+fecha)
       if (!database.objectStoreNames.contains('asistencia_cache')) {
         const store = database.createObjectStore('asistencia_cache', { keyPath: '_id' });
         store.createIndex('cuaderno', 'cuaderno', { unique: false });
@@ -34,7 +21,6 @@ export function openDB() {
         store.createIndex('fecha', 'fecha', { unique: false });
       }
 
-      // Store: caché de evaluaciones (por cuaderno+trimestre+estudiante)
       if (!database.objectStoreNames.contains('evaluacion_cache')) {
         const store = database.createObjectStore('evaluacion_cache', { keyPath: '_id' });
         store.createIndex('cuaderno', 'cuaderno', { unique: false });
@@ -42,7 +28,6 @@ export function openDB() {
         store.createIndex('estudiante', 'estudiante', { unique: false });
       }
 
-      // Store: cola de sincronización (operaciones pendientes)
       if (!database.objectStoreNames.contains('sync_queue')) {
         const store = database.createObjectStore('sync_queue', {
           keyPath: 'id',
@@ -63,7 +48,6 @@ export function openDB() {
   });
 }
 
-// ─── Helper genérico: transacción de escritura ──────────────────────────────
 async function withStore(storeName, mode, callback) {
   const database = await openDB();
   return new Promise((resolve, reject) => {
@@ -71,7 +55,7 @@ async function withStore(storeName, mode, callback) {
     const store = tx.objectStore(storeName);
     const result = callback(store);
     if (result && typeof result.onsuccess === 'undefined') {
-      // es una promesa o valor directo
+      
       tx.oncomplete = () => resolve(result);
       tx.onerror = () => reject(tx.error);
     } else if (result) {
@@ -84,9 +68,6 @@ async function withStore(storeName, mode, callback) {
   });
 }
 
-// ─── ASISTENCIA CACHE ────────────────────────────────────────────────────────
-
-/** Guarda una lista de asistencias en caché local */
 export async function guardarAsistenciaCache(asistencias) {
   const database = await openDB();
   return new Promise((resolve, reject) => {
@@ -94,7 +75,7 @@ export async function guardarAsistenciaCache(asistencias) {
     const store = tx.objectStore('asistencia_cache');
     const lista = Array.isArray(asistencias) ? asistencias : [asistencias];
     lista.forEach((a) => {
-      // Asegurar que tenga _id (puede ser temporal si es nueva)
+      
       if (a._id) store.put(a);
     });
     tx.oncomplete = () => resolve();
@@ -102,7 +83,6 @@ export async function guardarAsistenciaCache(asistencias) {
   });
 }
 
-/** Obtiene asistencias por cuaderno y trimestre del caché local */
 export async function obtenerAsistenciaCache(cuadernoId, trimestre) {
   const database = await openDB();
   return new Promise((resolve, reject) => {
@@ -115,7 +95,6 @@ export async function obtenerAsistenciaCache(cuadernoId, trimestre) {
   });
 }
 
-/** Guarda asistencia temporal con ID local (para offline) */
 export async function guardarAsistenciaTemporal(data) {
   const tempId = `temp_asistencia_${Date.now()}`;
   const registro = { ...data, _id: tempId, _offline: true, _createdAt: new Date().toISOString() };
@@ -123,9 +102,6 @@ export async function guardarAsistenciaTemporal(data) {
   return registro;
 }
 
-// ─── EVALUACION CACHE ────────────────────────────────────────────────────────
-
-/** Guarda una lista de evaluaciones en caché local */
 export async function guardarEvaluacionCache(evaluaciones) {
   const database = await openDB();
   return new Promise((resolve, reject) => {
@@ -140,7 +116,6 @@ export async function guardarEvaluacionCache(evaluaciones) {
   });
 }
 
-/** Obtiene evaluaciones por cuaderno y trimestre del caché local */
 export async function obtenerEvaluacionCache(cuadernoId, trimestre) {
   const database = await openDB();
   return new Promise((resolve, reject) => {
@@ -153,7 +128,6 @@ export async function obtenerEvaluacionCache(cuadernoId, trimestre) {
   });
 }
 
-/** Guarda evaluación temporal con ID local (para offline) */
 export async function guardarEvaluacionTemporal(data) {
   const tempId = `temp_eval_${Date.now()}`;
   const registro = { ...data, _id: tempId, _offline: true, _createdAt: new Date().toISOString() };
@@ -161,7 +135,6 @@ export async function guardarEvaluacionTemporal(data) {
   return registro;
 }
 
-/** Actualiza una evaluación en caché local (para edición offline) */
 export async function actualizarEvaluacionCache(id, datos) {
   const database = await openDB();
   return new Promise((resolve, reject) => {
@@ -181,16 +154,6 @@ export async function actualizarEvaluacionCache(id, datos) {
   });
 }
 
-// ─── SYNC QUEUE (cola de sincronización) ─────────────────────────────────────
-
-/**
- * Agrega una operación a la cola de sincronización.
- * @param {string} tipo - 'asistencia' | 'evaluacion'
- * @param {string} metodo - 'POST' | 'PUT' | 'DELETE'
- * @param {string} url - endpoint relativo, ej: '/asistencia' o '/evaluaciones/123'
- * @param {object} datos - body de la petición
- * @param {string} [tempId] - ID temporal local para reemplazar luego
- */
 export async function agregarALaCola(tipo, metodo, url, datos, tempId = null) {
   const database = await openDB();
   return new Promise((resolve, reject) => {
@@ -202,17 +165,16 @@ export async function agregarALaCola(tipo, metodo, url, datos, tempId = null) {
       url,
       datos,
       tempId,
-      estado: 'pendiente',   // 'pendiente' | 'sincronizando' | 'error'
+      estado: 'pendiente',   
       intentos: 0,
       timestamp: new Date().toISOString(),
     };
     const req = store.add(item);
-    req.onsuccess = () => resolve(req.result); // retorna el id autoincremental
+    req.onsuccess = () => resolve(req.result); 
     req.onerror = () => reject(req.error);
   });
 }
 
-/** Obtiene todos los items pendientes de la cola */
 export async function obtenerColaPendiente() {
   const database = await openDB();
   return new Promise((resolve, reject) => {
@@ -225,12 +187,10 @@ export async function obtenerColaPendiente() {
   });
 }
 
-/** Marca un item de la cola como completado (lo elimina) */
 export async function eliminarDeLaCola(id) {
   await withStore('sync_queue', 'readwrite', (store) => store.delete(id));
 }
 
-/** Actualiza el estado de un item en la cola */
 export async function actualizarEstadoCola(id, estado, intentos) {
   const database = await openDB();
   return new Promise((resolve, reject) => {
@@ -250,13 +210,11 @@ export async function actualizarEstadoCola(id, estado, intentos) {
   });
 }
 
-/** Retorna la cantidad de items pendientes en la cola */
 export async function contarPendientes() {
   const pendientes = await obtenerColaPendiente();
   return pendientes.length;
 }
 
-/** Limpia toda la caché (útil al hacer logout) */
 export async function limpiarCacheOffline() {
   const database = await openDB();
   return new Promise((resolve, reject) => {

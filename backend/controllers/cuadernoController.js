@@ -1,10 +1,7 @@
-// ============================================
-// controllers/cuadernoController.js — CRUD de Cuaderno Pedagógico
-// ============================================
+
 
 const CuadernoPedagogico = require('../models/CuadernoPedagogico');
 
-// CREAR cuaderno — POST /api/cuadernos
 const crearCuaderno = async (req, res) => {
   try {
     const cuaderno = await CuadernoPedagogico.create({
@@ -33,13 +30,10 @@ const crearCuaderno = async (req, res) => {
   }
 };
 
-// OBTENER cuadernos del docente autenticado — GET /api/cuadernos
 const obtenerCuadernos = async (req, res) => {
   try {
     const filtro = {};
 
-    // Si es docente, solo ve sus propios cuadernos
-    // Si es admin/director, ve todos (o puede filtrar por docente)
     if (req.usuario.rol === 'docente') {
       filtro.docente = req.usuario.id;
     } else if (req.query.docente) {
@@ -61,7 +55,6 @@ const obtenerCuadernos = async (req, res) => {
   }
 };
 
-// OBTENER un cuaderno por ID — GET /api/cuadernos/:id
 const obtenerCuaderno = async (req, res) => {
   try {
     const cuaderno = await CuadernoPedagogico.findById(req.params.id)
@@ -83,7 +76,6 @@ const obtenerCuaderno = async (req, res) => {
   }
 };
 
-// ACTUALIZAR cuaderno — PUT /api/cuadernos/:id
 const actualizarCuaderno = async (req, res) => {
   try {
     const cuaderno = await CuadernoPedagogico.findByIdAndUpdate(
@@ -105,7 +97,6 @@ const actualizarCuaderno = async (req, res) => {
   }
 };
 
-// ELIMINAR cuaderno — DELETE /api/cuadernos/:id
 const eliminarCuaderno = async (req, res) => {
   try {
     const cuaderno = await CuadernoPedagogico.findByIdAndDelete(req.params.id);

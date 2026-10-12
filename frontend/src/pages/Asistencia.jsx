@@ -1,6 +1,4 @@
-// ============================================
-// pages/Asistencia.jsx — Control de Asistencia Completo
-// ============================================
+
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -18,25 +16,21 @@ const Asistencia = () => {
   const [cuadernos, setCuadernos] = useState([]);
   const [cuadernoSeleccionado, setCuadernoSeleccionado] = useState(cuadernoIdInicial);
   const [trimestre, setTrimestre] = useState('1');
-  
-  // Pestaña activa: 'registrar', 'historial', 'resumen'
+
   const [activeTab, setActiveTab] = useState('registrar');
 
-  // Registrar / Editar Asistencia
   const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
   const [estudiantes, setEstudiantes] = useState([]);
-  const [registros, setRegistros] = useState({}); // { estId: 'A'|'R'|'L'|'F' }
-  const [asistenciaId, setAsistenciaId] = useState(null); // ID del registro si ya existe
+  const [registros, setRegistros] = useState({}); 
+  const [asistenciaId, setAsistenciaId] = useState(null); 
   const [guardando, setGuardando] = useState(false);
   const [cargandoEstudiantes, setCargandoEstudiantes] = useState(false);
 
-  // Historial y Resumen
   const [historial, setHistorial] = useState([]);
   const [cargandoHistorial, setCargandoHistorial] = useState(false);
   const [resumen, setResumen] = useState([]);
   const [cargandoResumen, setCargandoResumen] = useState(false);
 
-  // Cargar cuadernos al inicio
   useEffect(() => {
     const fetchCuadernos = async () => {
       try {
@@ -49,33 +43,30 @@ const Asistencia = () => {
     fetchCuadernos();
   }, []);
 
-  // Cargar historial y resumen del trimestre
   const fetchHistorialYResumen = useCallback(async () => {
     if (!cuadernoSeleccionado) return;
 
-    // ── Historial ──
     setCargandoHistorial(true);
     if (isOnline) {
       try {
         const { data } = await API.get(`/asistencia?cuaderno=${cuadernoSeleccionado}&trimestre=${trimestre}`);
         const lista = data.data || [];
         setHistorial(lista);
-        // Guardar en caché para uso offline
+        
         if (lista.length > 0) await guardarAsistenciaCache(lista);
       } catch (err) {
         console.error('Error al cargar historial:', err);
-        // Fallback a caché
+        
         const cached = await obtenerAsistenciaCache(cuadernoSeleccionado, Number(trimestre));
         setHistorial(cached);
       }
     } else {
-      // Sin internet: cargar desde IndexedDB
+      
       const cached = await obtenerAsistenciaCache(cuadernoSeleccionado, Number(trimestre));
       setHistorial(cached);
     }
     setCargandoHistorial(false);
 
-    // ── Resumen ── (solo si hay internet)
     if (isOnline) {
       try {
         setCargandoResumen(true);
@@ -89,33 +80,30 @@ const Asistencia = () => {
     }
   }, [cuadernoSeleccionado, trimestre, isOnline]);
 
-  // Recargar historial desde el servidor cuando la sincronización se completa
   useEffect(() => {
     if (syncCompletadoAt && cuadernoSeleccionado && navigator.onLine) {
-      // Pequeño delay para que el servidor procese antes de consultar
+      
       const timer = setTimeout(() => {
         fetchHistorialYResumen();
       }, 1000);
       return () => clearTimeout(timer);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  
   }, [syncCompletadoAt]);
 
-  // Ejecutar carga de historial/resumen al cambiar cuaderno o trimestre
   useEffect(() => {
     fetchHistorialYResumen();
   }, [fetchHistorialYResumen]);
 
-  // Cargar estudiantes INSCRITOS en el cuaderno (materia)
   useEffect(() => {
     if (cuadernoSeleccionado) {
       const fetchEstudiantes = async () => {
         try {
           setCargandoEstudiantes(true);
-          // Obtener solo los estudiantes inscritos en esta materia
+          
           const { data } = await API.get(`/inscripciones?cuaderno=${cuadernoSeleccionado}`);
           const inscripciones = data.data || [];
-          // Extraer el objeto estudiante de cada inscripción
+          
           const listaEst = inscripciones.map(ins => ins.estudiante).filter(Boolean);
           setEstudiantes(listaEst);
         } catch (err) {
@@ -132,10 +120,9 @@ const Asistencia = () => {
     }
   }, [cuadernoSeleccionado]);
 
-  // Buscar y sincronizar asistencia existente para la fecha seleccionada
   useEffect(() => {
     if (cuadernoSeleccionado && estudiantes.length > 0) {
-      const targetFechaStr = fecha; // 'YYYY-MM-DD'
+      const targetFechaStr = fecha; 
       
       const registroExistente = historial.find(h => {
         const hFechaStr = new Date(h.fecha).toISOString().split('T')[0];
@@ -143,13 +130,13 @@ const Asistencia = () => {
       });
 
       if (registroExistente) {
-        // Asistencia ya registrada -> cargar valores existentes
+        
         const nuevosRegistros = {};
-        // Inicializar con 'A' por defecto
+        
         estudiantes.forEach(est => {
           nuevosRegistros[est._id] = 'A';
         });
-        // Rellenar con los de la base de datos
+        
         registroExistente.registros.forEach(reg => {
           const estId = reg.estudiante?._id || reg.estudiante;
           if (estId) {
@@ -159,7 +146,7 @@ const Asistencia = () => {
         setRegistros(nuevosRegistros);
         setAsistenciaId(registroExistente._id);
       } else {
-        // Asistencia nueva -> inicializar todo con 'A'
+        
         const nuevosRegistros = {};
         estudiantes.forEach(est => {
           nuevosRegistros[est._id] = 'A';
@@ -187,11 +174,11 @@ const Asistencia = () => {
 
     try {
       if (asistenciaId && !asistenciaId.startsWith('temp_')) {
-        // ── PUT: actualizar existente ──
+        
         if (isOnline) {
           await API.put(`/asistencia/${asistenciaId}`, { registros: registrosArray });
         } else {
-          // Guardar en cola offline
+          
           const { agregarALaCola } = await import('../api/offlineDB');
           await agregarALaCola(
             'asistencia', 'PUT', `/asistencia/${asistenciaId}`,
@@ -200,7 +187,7 @@ const Asistencia = () => {
           setGuardadoOffline(true);
         }
       } else {
-        // ── POST: registrar nuevo ──
+        
         const payload = {
           cuaderno: cuadernoSeleccionado,
           trimestre: Number(trimestre),
@@ -209,7 +196,7 @@ const Asistencia = () => {
         };
         const { data, offline } = await registrarAsistenciaConOffline(payload);
         if (offline) {
-          // Agregar al historial local inmediatamente para que aparezca en la UI
+          
           setHistorial(prev => {
             const existe = prev.find(h => {
               const hf = new Date(h.fecha).toISOString().split('T')[0];
@@ -239,7 +226,7 @@ const Asistencia = () => {
         await API.delete(`/asistencia/${id}`);
         alert('Registro de asistencia eliminado exitosamente');
         await fetchHistorialYResumen();
-        // Si el día eliminado coincide con la fecha seleccionada en pantalla, resetear
+        
         const registroEliminado = historial.find(h => h._id === id);
         if (registroEliminado) {
           const reFechaStr = new Date(registroEliminado.fecha).toISOString().split('T')[0];
@@ -286,7 +273,7 @@ const Asistencia = () => {
 
   return (
     <div className="page-container">
-      {/* Modal de guardado offline */}
+      {}
       {guardadoOffline && (
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
@@ -331,7 +318,7 @@ const Asistencia = () => {
           <h1 className="page-title">Control de Asistencia</h1>
           <p className="page-subtitle">Gestión y estadísticas de asistencia escolar diaria</p>
         </div>
-        {/* Indicador de estado */}
+        {}
         {!isOnline && (
           <div style={{
             display: 'flex', alignItems: 'center', gap: '0.5rem',
@@ -344,7 +331,7 @@ const Asistencia = () => {
         )}
       </div>
 
-      {/* Controles Principales de Selección */}
+      {}
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-2">📚 Cuaderno / Materia</label>
@@ -378,7 +365,7 @@ const Asistencia = () => {
 
       {cuadernoSeleccionado ? (
         <div className="space-y-6">
-          {/* Navegación por pestañas (Tabs) */}
+          {}
           <div className="flex border-b border-slate-200 bg-white p-1 rounded-xl shadow-sm">
             <button
               onClick={() => setActiveTab('registrar')}
@@ -412,9 +399,9 @@ const Asistencia = () => {
             </button>
           </div>
 
-          {/* CONTENIDO DE PESTAÑAS */}
+          {}
 
-          {/* 1. REGISTRAR / EDITAR */}
+          {}
           {activeTab === 'registrar' && (
             <div className="space-y-4">
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -433,7 +420,7 @@ const Asistencia = () => {
                 </div>
               </div>
 
-              {/* Banner de Estado (Edición vs Registro Nuevo) */}
+              {}
               {asistenciaId ? (
                 <div className="bg-amber-50 border border-amber-200 text-amber-900 px-6 py-4 rounded-2xl flex items-center gap-3 shadow-inner">
                   <span className="text-2xl">✏️</span>
@@ -452,7 +439,7 @@ const Asistencia = () => {
                 </div>
               )}
 
-              {/* Tabla de Estudiantes */}
+              {}
               {cargandoEstudiantes ? (
                 <div className="bg-white p-12 rounded-2xl border text-center text-slate-500">Cargando lista de estudiantes...</div>
               ) : estudiantes.length > 0 ? (
@@ -522,7 +509,7 @@ const Asistencia = () => {
             </div>
           )}
 
-          {/* 2. HISTORIAL DE FECHAS */}
+          {}
           {activeTab === 'historial' && (
             <div className="space-y-4">
               {cargandoHistorial ? (
@@ -593,7 +580,7 @@ const Asistencia = () => {
             </div>
           )}
 
-          {/* 3. RESUMEN ESTADÍSTICO */}
+          {}
           {activeTab === 'resumen' && (
             <div className="space-y-4">
               {cargandoResumen ? (
@@ -617,13 +604,12 @@ const Asistencia = () => {
                       </thead>
                       <tbody className="divide-y divide-slate-200">
                         {resumen.map((r, idx) => {
-                          // Calcular asistencia % (Asiste + Retraso) / totalDias * 100
+                          
                           const total = r.totalDias || 0;
                           const porcentaje = total > 0 
                             ? Math.round(((r.A + r.R) / total) * 100) 
                             : 0;
 
-                          // Color del porcentaje
                           let badgeColor = 'bg-red-50 text-red-700 border-red-200';
                           if (porcentaje >= 90) badgeColor = 'bg-emerald-50 text-emerald-700 border-emerald-200';
                           else if (porcentaje >= 75) badgeColor = 'bg-amber-50 text-amber-700 border-amber-200';

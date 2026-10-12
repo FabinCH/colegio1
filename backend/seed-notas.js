@@ -12,10 +12,10 @@ require('dotenv').config();
 const randomGrade = (max) => Math.floor(Math.random() * (max + 1));
 const randomAttendance = () => {
   const rand = Math.random();
-  if (rand > 0.3) return 'A'; // 70% asiste
-  if (rand > 0.15) return 'F'; // 15% falta
-  if (rand > 0.05) return 'R'; // 10% retraso
-  return 'L'; // 5% licencia
+  if (rand > 0.3) return 'A'; 
+  if (rand > 0.15) return 'F'; 
+  if (rand > 0.05) return 'R'; 
+  return 'L'; 
 };
 
 const seedNotas = async () => {
@@ -38,20 +38,19 @@ const seedNotas = async () => {
     }
 
     for (const cuaderno of cuadernos) {
-      const estudiantes = cuaderno.curso.estudiantes; // Array of IDs
+      const estudiantes = cuaderno.curso.estudiantes; 
       if (estudiantes.length === 0) continue;
 
       console.log(`Generando datos para cuaderno de ${cuaderno.docente.equals(raul._id) ? 'Raul' : 'Jorge'}...`);
 
-      // Array de trimestres con fechas base para las asistencias
       const trimestres = [
-        { num: 1, mes: 2 }, // Marzo (mes 2 en JS Date, 0-indexed)
-        { num: 2, mes: 5 }, // Junio
-        { num: 3, mes: 8 }  // Septiembre
+        { num: 1, mes: 2 }, 
+        { num: 2, mes: 5 }, 
+        { num: 3, mes: 8 }  
       ];
 
       for (const tri of trimestres) {
-        // 1. Crear Evaluaciones (Trimestre X) para cada estudiante
+        
         for (const estId of estudiantes) {
           const evalExists = await Evaluacion.findOne({ cuaderno: cuaderno._id, trimestre: tri.num, estudiante: estId });
           if (!evalExists) {
@@ -67,9 +66,8 @@ const seedNotas = async () => {
           }
         }
 
-        // 2. Crear 3 días de Asistencia para el trimestre X
         for (let i = 0; i < 3; i++) {
-          const fecha = new Date(2026, tri.mes, 10 + i); // Ej: 10, 11, 12 del mes respectivo
+          const fecha = new Date(2026, tri.mes, 10 + i); 
           fecha.setHours(0,0,0,0);
 
           const asistenciaExists = await Asistencia.findOne({ cuaderno: cuaderno._id, fecha: fecha });

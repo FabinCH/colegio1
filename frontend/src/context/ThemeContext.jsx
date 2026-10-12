@@ -1,32 +1,18 @@
-// ============================================
-// context/ThemeContext.jsx — Modo oscuro / claro
-// ============================================
-//
-// COMPORTAMIENTO:
-//   1. Si el usuario YA eligió un tema (guardado en localStorage) → usa ese.
-//   2. Si el usuario NUNCA eligió → sigue la preferencia del sistema operativo
-//      (prefers-color-scheme: dark / light).
-//   3. Si el sistema cambia mientras la app está abierta → se actualiza automáticamente
-//      (solo cuando el usuario no tiene preferencia manual guardada).
-//   4. Al presionar el botón de tema → se guarda la elección manual y ya no sigue al sistema.
+
 
 import { createContext, useContext, useEffect, useState } from 'react';
 
 const ThemeContext = createContext(null);
 
-// Detecta si el sistema prefiere modo oscuro
 const prefiereSistemaOscuro = () =>
   window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-// Leer el tema inicial:
-//   - Si hay elección manual en localStorage → usarla
-//   - Si no → seguir al sistema operativo
 function leerTemaInicial() {
   try {
     const guardado = localStorage.getItem('theme');
     if (guardado === 'dark')  return true;
     if (guardado === 'light') return false;
-    // Sin elección manual → seguir al sistema
+    
     return prefiereSistemaOscuro();
   } catch {
     return false;
@@ -35,7 +21,7 @@ function leerTemaInicial() {
 
 export function ThemeProvider({ children }) {
   const [isDark, setIsDark] = useState(leerTemaInicial);
-  // Rastrear si el usuario eligió manualmente (para no sobreescribir con el sistema)
+  
   const [esManual, setEsManual] = useState(() => {
     try {
       const g = localStorage.getItem('theme');
@@ -43,7 +29,6 @@ export function ThemeProvider({ children }) {
     } catch { return false; }
   });
 
-  // Aplicar el tema al <html> cada vez que cambie
   useEffect(() => {
     const root = document.documentElement;
     if (isDark) {
@@ -55,8 +40,6 @@ export function ThemeProvider({ children }) {
     }
   }, [isDark]);
 
-  // Escuchar cambios del sistema operativo en tiempo real
-  // Solo aplica si el usuario NO eligió manualmente
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     const handleSistema = (e) => {
@@ -68,7 +51,6 @@ export function ThemeProvider({ children }) {
     return () => mq.removeEventListener('change', handleSistema);
   }, [esManual]);
 
-  // El usuario presiona el botón → guardar elección manual
   const toggleTheme = () => {
     setIsDark((prev) => {
       const nuevo = !prev;
@@ -78,7 +60,6 @@ export function ThemeProvider({ children }) {
     setEsManual(true);
   };
 
-  // Forzar un tema específico desde fuera
   const setTheme = (tema) => {
     const oscuro = tema === 'dark';
     setIsDark(oscuro);
@@ -86,7 +67,6 @@ export function ThemeProvider({ children }) {
     localStorage.setItem('theme', tema);
   };
 
-  // Resetear al sistema (quita la elección manual)
   const resetToSystem = () => {
     localStorage.removeItem('theme');
     setEsManual(false);

@@ -1,13 +1,4 @@
-// ============================================
-// routes/cuadernoRoutes.js — Rutas de Cuaderno Pedagógico
-// ============================================
-//
-// RUTAS DISPONIBLES (todas protegidas con JWT):
-//   POST   /api/cuadernos       → Crear cuaderno pedagógico
-//   GET    /api/cuadernos       → Listar cuadernos (docente ve los suyos)
-//   GET    /api/cuadernos/:id   → Obtener uno con estudiantes
-//   PUT    /api/cuadernos/:id   → Actualizar carátula
-//   DELETE /api/cuadernos/:id   → Eliminar
+
 
 const express = require('express');
 const router = express.Router();

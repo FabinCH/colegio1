@@ -1,12 +1,4 @@
-// ============================================
-// pages/Reportes.jsx — Reportes PDF y Excel
-// ============================================
-// Fase 6: Sistema de reportes exigidos por el Ministerio
-// - Boletín de notas PDF (jsPDF + jspdf-autotable)
-// - Centralizador de notas Excel (SheetJS/xlsx)
-//
-// ESCALA RM 01/2026:
-//   SER(10) + SABER(45) + HACER(40) + AUTO(5) = 100
+
 
 import React, { useState, useEffect } from 'react';
 import API from '../api/axiosConfig';
@@ -20,7 +12,6 @@ const Reportes = () => {
   const [cargando, setCargando] = useState(false);
   const [activeTab, setActiveTab] = useState('boletin');
 
-  // Datos para generar reportes
   const [cuadernoDetalle, setCuadernoDetalle] = useState(null);
   const [evaluaciones, setEvaluaciones] = useState([]);
   const [centralizadorData, setCentralizadorData] = useState([]);
@@ -37,7 +28,6 @@ const Reportes = () => {
     fetchCuadernos();
   }, []);
 
-  // Cargar datos cuando se selecciona un cuaderno
   useEffect(() => {
     if (cuadernoSeleccionado) {
       const fetchDatos = async () => {
@@ -50,7 +40,6 @@ const Reportes = () => {
           setCuadernoDetalle(detRes.data.data);
           setCentralizadorData(centRes.data.data || []);
 
-          // Cargar evaluaciones de los 3 trimestres
           const [t1, t2, t3] = await Promise.all([
             API.get(`/evaluaciones?cuaderno=${cuadernoSeleccionado}&trimestre=1`),
             API.get(`/evaluaciones?cuaderno=${cuadernoSeleccionado}&trimestre=2`),
@@ -71,16 +60,12 @@ const Reportes = () => {
     }
   }, [cuadernoSeleccionado]);
 
-  // =======================================
-  // GENERAR BOLETÍN PDF (para padres)
-  // =======================================
   const generarBoletinPDF = (estudianteData) => {
     const doc = new jsPDF();
     const est = estudianteData.estudiante;
     const trimestres = estudianteData.trimestres;
     const cuad = cuadernoDetalle;
 
-    // ── ENCABEZADO ──
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.text('ESTADO PLURINACIONAL DE BOLIVIA', 105, 15, { align: 'center' });
@@ -99,7 +84,6 @@ const Reportes = () => {
     doc.setLineWidth(0.5);
     doc.line(15, 44, 195, 44);
 
-    // ── DATOS DEL ESTUDIANTE ──
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.text('DATOS DEL ESTUDIANTE', 15, 52);
@@ -114,7 +98,6 @@ const Reportes = () => {
 
     doc.line(15, 75, 195, 75);
 
-    // ── TABLA DE NOTAS POR TRIMESTRE ──
     const filas = [];
     let sumaTotal = 0;
     let cantTrimestres = 0;
@@ -152,7 +135,7 @@ const Reportes = () => {
       },
       foot: [],
       didParseCell: function (data) {
-        // Resaltar fila de promedio final
+        
         if (data.row.index === filas.length - 1) {
           data.cell.styles.fontStyle = 'bold';
           data.cell.styles.fillColor = [240, 248, 255];
@@ -162,7 +145,6 @@ const Reportes = () => {
 
     const finalY = doc.lastAutoTable.finalY + 10;
 
-    // ── RESULTADO ──
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     const aprobado = promedioFinal >= 51;
@@ -170,14 +152,13 @@ const Reportes = () => {
     doc.text(`Resultado: ${aprobado ? 'APROBADO' : 'REPROBADO'} — ${promedioFinal}/100`, 105, finalY, { align: 'center' });
     doc.setTextColor(0, 0, 0);
 
-    // ── PIE ──
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
     doc.text('Nota: La escala de evaluación es de 1 a 100. La nota mínima de aprobación es 51 puntos.', 15, finalY + 10);
     
     doc.setDrawColor(150);
     doc.setLineWidth(0.3);
-    // Firmas
+    
     doc.line(25, finalY + 35, 85, finalY + 35);
     doc.line(120, finalY + 35, 180, finalY + 35);
     doc.setFontSize(8);
@@ -187,33 +168,27 @@ const Reportes = () => {
     doc.text(`Docente: ${cuad?.docente?.nombre || ''}`, 55, finalY + 46, { align: 'center' });
     doc.text(`Director/a: ${cuad?.director || ''}`, 150, finalY + 46, { align: 'center' });
 
-    // Guardar
     const nombreArchivo = `Boletin_${est?.apellidos || 'Estudiante'}_${est?.nombres || ''}_${cuad?.gestion || ''}.pdf`;
     doc.save(nombreArchivo);
   };
 
-  // Generar boletín para TODOS los estudiantes (un archivo)
   const generarBoletinTodos = () => {
     if (centralizadorData.length === 0) return alert('No hay datos de evaluaciones para generar boletines');
     centralizadorData.forEach(est => generarBoletinPDF(est));
   };
 
-  // =======================================
-  // GENERAR CENTRALIZADOR EXCEL (para director)
-  // =======================================
   const generarCentralizadorExcel = () => {
     if (centralizadorData.length === 0) return alert('No hay datos para exportar');
 
     const cuad = cuadernoDetalle;
     const wb = XLSX.utils.book_new();
 
-    // ── HOJA 1: Centralizador de Notas ──
     const encabezados = [
       ['CENTRALIZADOR DE NOTAS — CUADERNO PEDAGÓGICO'],
       [`Unidad Educativa: ${cuad?.unidadEducativa || ''}`],
       [`Materia: ${cuad?.materia?.nombre || ''} | Curso: ${cuad?.curso?.grado || ''} "${cuad?.curso?.paralelo || ''}" | Gestión: ${cuad?.gestion || ''}`],
       [`Distrito Educativo: ${cuad?.distritoEducativo || ''} | Departamento: ${cuad?.departamento || ''}`],
-      [], // Fila vacía
+      [], 
       [
         'Nº', 'Apellidos y Nombres', 'RUDE',
         '1°T SER', '1°T SAB', '1°T HAC', '1°T AUT', '1°T TOTAL',
@@ -245,19 +220,17 @@ const Reportes = () => {
     const wsData = [...encabezados, ...filas];
     const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-    // Ancho de columnas
     ws['!cols'] = [
-      { wch: 4 },   // Nº
-      { wch: 30 },  // Nombre
-      { wch: 15 },  // RUDE
-      { wch: 6 }, { wch: 6 }, { wch: 6 }, { wch: 6 }, { wch: 8 }, // 1T
-      { wch: 6 }, { wch: 6 }, { wch: 6 }, { wch: 6 }, { wch: 8 }, // 2T
-      { wch: 6 }, { wch: 6 }, { wch: 6 }, { wch: 6 }, { wch: 8 }, // 3T
-      { wch: 12 }, // Promedio
-      { wch: 12 }, // Resultado
+      { wch: 4 },   
+      { wch: 30 },  
+      { wch: 15 },  
+      { wch: 6 }, { wch: 6 }, { wch: 6 }, { wch: 6 }, { wch: 8 }, 
+      { wch: 6 }, { wch: 6 }, { wch: 6 }, { wch: 6 }, { wch: 8 }, 
+      { wch: 6 }, { wch: 6 }, { wch: 6 }, { wch: 6 }, { wch: 8 }, 
+      { wch: 12 }, 
+      { wch: 12 }, 
     ];
 
-    // Merge para el título
     ws['!merges'] = [
       { s: { r: 0, c: 0 }, e: { r: 0, c: 19 } },
       { s: { r: 1, c: 0 }, e: { r: 1, c: 19 } },
@@ -267,7 +240,6 @@ const Reportes = () => {
 
     XLSX.utils.book_append_sheet(wb, ws, 'Centralizador');
 
-    // ── HOJA 2: Resumen por trimestre ──
     const resumenData = [
       ['RESUMEN POR TRIMESTRE'],
       [],
@@ -288,7 +260,6 @@ const Reportes = () => {
       resumenData.push([`${trim}° Trimestre`, aprobados, reprobados, total, `${porcentaje}%`]);
     });
 
-    // Resumen anual
     const aprobadosAnual = centralizadorData.filter(i => (i.promedioAnual || 0) >= 51).length;
     const reprobadosAnual = centralizadorData.length - aprobadosAnual;
     const porcentajeAnual = centralizadorData.length > 0 ? Math.round((aprobadosAnual / centralizadorData.length) * 100) : 0;
@@ -313,7 +284,7 @@ const Reportes = () => {
         </div>
       </div>
 
-      {/* Selector de Cuaderno */}
+      {}
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
         <label className="block text-sm font-semibold text-slate-700 mb-2">📚 Seleccionar Cuaderno / Materia</label>
         <select 
@@ -332,7 +303,7 @@ const Reportes = () => {
 
       {cuadernoSeleccionado && !cargando && (
         <div className="space-y-6">
-          {/* Tabs */}
+          {}
           <div className="flex border-b border-slate-200 bg-white p-1 rounded-xl shadow-sm">
             <button
               onClick={() => setActiveTab('boletin')}
@@ -356,7 +327,7 @@ const Reportes = () => {
             </button>
           </div>
 
-          {/* ═══ TAB 1: BOLETÍN PDF ═══ */}
+          {}
           {activeTab === 'boletin' && (
             <div className="space-y-4">
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
@@ -373,7 +344,7 @@ const Reportes = () => {
                 </button>
               </div>
 
-              {/* Lista de estudiantes con opción individual */}
+              {}
               {centralizadorData.length > 0 ? (
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                   <div className="overflow-x-auto">
@@ -437,7 +408,7 @@ const Reportes = () => {
             </div>
           )}
 
-          {/* ═══ TAB 2: CENTRALIZADOR EXCEL ═══ */}
+          {}
           {activeTab === 'centralizador' && (
             <div className="space-y-4">
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
@@ -454,7 +425,7 @@ const Reportes = () => {
                 </button>
               </div>
 
-              {/* Preview del centralizador */}
+              {}
               {centralizadorData.length > 0 ? (
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                   <div className="p-4 bg-emerald-50 border-b border-emerald-100">
@@ -547,6 +518,5 @@ const Reportes = () => {
     </div>
   );
 };
-
 
 export default Reportes;

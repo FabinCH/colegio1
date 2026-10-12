@@ -1,10 +1,7 @@
-// ============================================
-// controllers/asistenciaController.js — Gestión de Asistencia
-// ============================================
+
 
 const Asistencia = require('../models/Asistencia');
 
-// REGISTRAR asistencia diaria — POST /api/asistencia
 const registrarAsistencia = async (req, res) => {
   try {
     const { cuaderno, trimestre, fecha, registros } = req.body;
@@ -38,7 +35,6 @@ const registrarAsistencia = async (req, res) => {
   }
 };
 
-// OBTENER asistencia por cuaderno y trimestre — GET /api/asistencia
 const obtenerAsistencia = async (req, res) => {
   try {
     const { cuaderno, trimestre } = req.query;
@@ -57,7 +53,6 @@ const obtenerAsistencia = async (req, res) => {
   }
 };
 
-// ACTUALIZAR asistencia de un día — PUT /api/asistencia/:id
 const actualizarAsistencia = async (req, res) => {
   try {
     const asistencia = await Asistencia.findByIdAndUpdate(
@@ -81,7 +76,6 @@ const actualizarAsistencia = async (req, res) => {
   }
 };
 
-// RESUMEN de asistencia por trimestre — GET /api/asistencia/resumen
 const resumenAsistencia = async (req, res) => {
   try {
     const { cuaderno, trimestre } = req.query;
@@ -98,7 +92,6 @@ const resumenAsistencia = async (req, res) => {
       trimestre: Number(trimestre),
     }).populate('registros.estudiante', 'nombres apellidos rude');
 
-    // Calcular resumen por estudiante
     const resumen = {};
     asistencias.forEach((dia) => {
       dia.registros.forEach((reg) => {
@@ -127,7 +120,6 @@ const resumenAsistencia = async (req, res) => {
   }
 };
 
-// ELIMINAR asistencia — DELETE /api/asistencia/:id
 const eliminarAsistencia = async (req, res) => {
   try {
     const asistencia = await Asistencia.findByIdAndDelete(req.params.id);

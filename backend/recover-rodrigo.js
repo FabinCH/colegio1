@@ -13,10 +13,10 @@ require('dotenv').config();
 const randomGrade = (max) => Math.floor(Math.random() * (max + 1));
 const randomAttendance = () => {
   const rand = Math.random();
-  if (rand > 0.3) return 'A'; // 70% asiste
-  if (rand > 0.15) return 'F'; // 15% falta
-  if (rand > 0.05) return 'R'; // 10% retraso
-  return 'L'; // 5% licencia
+  if (rand > 0.3) return 'A'; 
+  if (rand > 0.15) return 'F'; 
+  if (rand > 0.05) return 'R'; 
+  return 'L'; 
 };
 const generateRUDE = () => 'RUDE' + Math.floor(Math.random() * 1000000000);
 
@@ -31,7 +31,6 @@ const recoverRodrigo = async () => {
 
     console.log('Recuperando datos para Rodrigo...');
 
-    // Restaurar curso 4to A si está huérfano o crear uno
     let curso = await Curso.findOne({ grado: '4to', paralelo: 'A', nivel: 'secundaria' });
     if (!curso) {
       curso = await Curso.create({
@@ -71,7 +70,6 @@ const recoverRodrigo = async () => {
       });
     }
 
-    // Si el curso no tiene estudiantes, agregar 10
     if (curso.estudiantes.length === 0) {
       const nombresM = ['Carlos', 'Luis', 'Pedro', 'Juan', 'Miguel'];
       const nombresF = ['Ana', 'Maria', 'Laura', 'Sofia', 'Lucia'];
@@ -101,7 +99,7 @@ const recoverRodrigo = async () => {
       curso.estudiantes = nuevosEsts;
       await curso.save();
     } else {
-        // Asegurar que estén inscritos al cuaderno
+        
         for (let estId of curso.estudiantes) {
             const ins = await Inscripcion.findOne({ cuaderno: cuaderno._id, estudiante: estId });
             if (!ins) {
