@@ -7,6 +7,7 @@ const { protect, authorize } = require('../middlewares/authMiddleware');
 const {
   listarUsuarios,
   crearDocente,
+  editarUsuario,
   asignarRol,
   eliminarUsuario,
   asignarMateriaDocente,
@@ -26,8 +27,9 @@ router.route('/usuarios')
   .get(listarUsuarios)
   .post(crearDocente);
 
-router.put('/usuarios/:id/rol', asignarRol);
-router.delete('/usuarios/:id',  eliminarUsuario);
+router.put('/usuarios/:id',      editarUsuario);
+router.put('/usuarios/:id/rol',  asignarRol);
+router.delete('/usuarios/:id',   eliminarUsuario);
 
 router.put('/materias/:id/asignar-docente', asignarMateriaDocente);
 

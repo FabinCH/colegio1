@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 const DirectorPanel = () => {
   const { usuario } = useAuth();
   const [seccion, setSeccion] = useState('reportes');
+  const [drawerAbierto, setDrawerAbierto] = useState(false);
 
   if (usuario?.rol !== 'director' && usuario?.rol !== 'admin') {
     return (
@@ -21,12 +22,12 @@ const DirectorPanel = () => {
   }
 
   const secciones = [
-    { id: 'reportes',   icon: '📊', label: 'Reportes por Curso',   color: 'blue' },
-    { id: 'rendimiento',icon: '👨‍🏫', label: 'Rendimiento Docente',   color: 'violet' },
-    { id: 'asistencia', icon: '📅', label: 'Estadísticas Asistencia',color: 'emerald' },
-    { id: 'ranking',    icon: '🏆', label: 'Ranking de Notas',      color: 'amber' },
-    { id: 'cuadernos',  icon: '📚', label: 'Supervisar Cuadernos',  color: 'cyan' },
-    { id: 'exportar',   icon: '📤', label: 'Exportación SIGED',     color: 'slate' },
+    { id: 'reportes',    icon: '📊', label: 'Reportes por Curso',     color: 'blue' },
+    { id: 'rendimiento', icon: '👨‍🏫', label: 'Rendimiento Docente',     color: 'violet' },
+    { id: 'asistencia',  icon: '📅', label: 'Estadísticas Asistencia', color: 'emerald' },
+    { id: 'ranking',     icon: '🏆', label: 'Ranking de Notas',        color: 'amber' },
+    { id: 'cuadernos',   icon: '📚', label: 'Supervisar Cuadernos',    color: 'cyan' },
+    { id: 'exportar',    icon: '📤', label: 'Exportación SIGED',       color: 'slate' },
   ];
 
   const colorActiveMap = {
@@ -37,6 +38,27 @@ const DirectorPanel = () => {
     cyan:   'bg-cyan-50 text-cyan-700 border-l-4 border-cyan-600',
     slate:  'bg-slate-100 text-slate-800 border-l-4 border-slate-700',
   };
+
+  const seccionActual = secciones.find(s => s.id === seccion);
+
+  const NavItems = ({ onSelect }) => (
+    <>
+      {secciones.map(s => (
+        <button
+          key={s.id}
+          onClick={() => { setSeccion(s.id); onSelect?.(); }}
+          className={`w-full flex items-center gap-3 px-4 py-3.5 text-left text-sm font-semibold transition-all ${
+            seccion === s.id
+              ? colorActiveMap[s.color]
+              : 'text-slate-600 hover:bg-slate-50 border-l-4 border-transparent'
+          }`}
+        >
+          <span className="text-lg">{s.icon}</span>
+          <span>{s.label}</span>
+        </button>
+      ))}
+    </>
+  );
 
   return (
     <div className="page-container">
@@ -49,26 +71,66 @@ const DirectorPanel = () => {
         </div>
       </div>
 
+      {/* ── Barra de navegación móvil ── */}
+      <div className="flex items-center gap-3 mb-4 md:hidden">
+        <button
+          onClick={() => setDrawerAbierto(true)}
+          className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm w-full"
+        >
+          <span className="text-base">{seccionActual?.icon}</span>
+          <span className="flex-1 text-left">{seccionActual?.label}</span>
+          <span className="text-slate-400 text-lg">☰</span>
+        </button>
+      </div>
+
+      {/* ── Backdrop (móvil) ── */}
+      {drawerAbierto && (
+        <div
+          className="fixed inset-0 bg-slate-900/60 z-40 md:hidden"
+          style={{ backdropFilter: 'blur(2px)' }}
+          onClick={() => setDrawerAbierto(false)}
+        />
+      )}
+
+      {/* ── Drawer deslizante (móvil) ── */}
+      <div
+        className="fixed top-0 left-0 h-full w-72 bg-white shadow-2xl z-50 md:hidden flex flex-col"
+        style={{
+          transform: drawerAbierto ? 'translateX(0)' : 'translateX(-100%)',
+          transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+      >
+        {/* Header del drawer */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100"
+          style={{ background: 'linear-gradient(135deg, #2563eb, #4f46e5)' }}
+        >
+          <div className="flex items-center gap-2 text-white">
+            <span className="text-xl">🎩</span>
+            <span className="font-bold text-sm">Panel del Director</span>
+          </div>
+          <button
+            onClick={() => setDrawerAbierto(false)}
+            className="text-white/70 hover:text-white text-xl font-bold leading-none w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20 transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+        {/* Secciones del drawer */}
+        <nav className="flex-1 overflow-y-auto py-2">
+          <NavItems onSelect={() => setDrawerAbierto(false)} />
+        </nav>
+      </div>
+
+      {/* ── Layout principal ── */}
       <div className="flex gap-6">
-        {}
-        <aside className="w-64 flex-shrink-0">
+        {/* Sidebar solo en desktop */}
+        <aside className="w-64 flex-shrink-0 hidden md:block">
           <nav className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-            {secciones.map(s => (
-              <button
-                key={s.id}
-                onClick={() => setSeccion(s.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3.5 text-left text-sm font-semibold transition-all ${
-                  seccion === s.id ? colorActiveMap[s.color] : 'text-slate-600 hover:bg-slate-50 border-l-4 border-transparent'
-                }`}
-              >
-                <span className="text-lg">{s.icon}</span>
-                <span>{s.label}</span>
-              </button>
-            ))}
+            <NavItems />
           </nav>
         </aside>
 
-        {}
+        {/* Contenido */}
         <main className="flex-1 min-w-0">
           {seccion === 'reportes'    && <SeccionReportes />}
           {seccion === 'rendimiento' && <SeccionRendimiento />}

@@ -122,6 +122,59 @@ const asignarRol = async (req, res) => {
   }
 };
 
+const editarUsuario = async (req, res) => {
+  try {
+    const { nombre, email, password } = req.body;
+
+    if (!nombre || !email) {
+      return res.status(400).json({ exito: false, mensaje: 'Nombre y email son obligatorios' });
+    }
+
+    // Verificar que el email no esté en uso por otro usuario
+    const emailExiste = await User.findOne({ email, _id: { $ne: req.params.id } });
+    if (emailExiste) {
+      return res.status(400).json({ exito: false, mensaje: 'El email ya está en uso por otro usuario' });
+    }
+
+    const updates = { nombre, email };
+
+    const usuario = await User.findById(req.params.id);
+    if (!usuario) {
+      return res.status(404).json({ exito: false, mensaje: 'Usuario no encontrado' });
+    }
+
+    usuario.nombre = nombre;
+    usuario.email  = email;
+
+    // Actualizar contraseña solo si se proporcionó
+    if (password && password.trim().length >= 6) {
+      usuario.password = password;
+    }
+
+    await usuario.save();
+
+    registrarAuditoria(
+      'EDITAR_USUARIO',
+      `Se editaron los datos del usuario "${nombre}" (${email})`,
+      req.usuario,
+      { usuarioAfectado: usuario._id, camposActualizados: Object.keys(updates) }
+    );
+
+    res.json({
+      exito: true,
+      mensaje: 'Usuario actualizado exitosamente',
+      data: { id: usuario._id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol },
+    });
+  } catch (error) {
+    if (error.name === 'ValidationError') {
+      const mensajes = Object.values(error.errors).map(e => e.message);
+      return res.status(400).json({ exito: false, mensaje: 'Error de validación', errores: mensajes });
+    }
+    console.error('Error en editarUsuario:', error);
+    res.status(500).json({ exito: false, mensaje: 'Error interno del servidor' });
+  }
+};
+
 const eliminarUsuario = async (req, res) => {
   try {
     
@@ -434,6 +487,7 @@ module.exports = {
   
   listarUsuarios,
   crearDocente,
+  editarUsuario,
   asignarRol,
   eliminarUsuario,
   

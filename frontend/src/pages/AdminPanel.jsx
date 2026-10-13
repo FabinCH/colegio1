@@ -10,6 +10,7 @@ const NIVELES = ['inicial', 'primaria', 'secundaria'];
 const AdminPanel = () => {
   const { usuario } = useAuth();
   const [seccion, setSeccion] = useState('dashboard');
+  const [drawerAbierto, setDrawerAbierto] = useState(false);
 
   if (usuario?.rol !== 'admin') {
     return (
@@ -55,9 +56,28 @@ const AdminPanel = () => {
 
   const seccionActual = secciones.find(s => s.id === seccion);
 
+  const NavItems = ({ onSelect }) => (
+    <>
+      {secciones.map(s => (
+        <button
+          key={s.id}
+          onClick={() => { setSeccion(s.id); onSelect?.(); }}
+          className={`w-full flex items-center gap-3 px-4 py-3.5 text-left text-sm font-semibold transition-all ${
+            seccion === s.id
+              ? colorActiveMap[s.color]
+              : 'text-slate-600 hover:bg-slate-50 border-l-4 border-transparent'
+          }`}
+        >
+          <span className="text-lg">{s.icon}</span>
+          <span>{s.label}</span>
+        </button>
+      ))}
+    </>
+  );
+
   return (
     <div className="page-container">
-      {}
+      {/* Header */}
       <div className="page-header mb-6">
         <div>
           <h1 className="page-title flex items-center gap-3">
@@ -74,28 +94,67 @@ const AdminPanel = () => {
         </div>
       </div>
 
+      {/* ── Barra de navegación móvil ── */}
+      <div className="flex items-center gap-3 mb-4 md:hidden">
+        <button
+          onClick={() => setDrawerAbierto(true)}
+          className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm w-full"
+        >
+          <span className="text-base">{seccionActual?.icon}</span>
+          <span className="flex-1 text-left">{seccionActual?.label}</span>
+          <span className="text-slate-400 text-lg">☰</span>
+        </button>
+      </div>
+
+      {/* ── Backdrop (móvil) ── */}
+      {drawerAbierto && (
+        <div
+          className="fixed inset-0 bg-slate-900/60 z-40 md:hidden"
+          style={{ backdropFilter: 'blur(2px)' }}
+          onClick={() => setDrawerAbierto(false)}
+        />
+      )}
+
+      {/* ── Drawer deslizante (móvil) ── */}
+      <div
+        className="fixed top-0 left-0 h-full w-72 bg-white shadow-2xl z-50 md:hidden flex flex-col"
+        style={{
+          transform: drawerAbierto ? 'translateX(0)' : 'translateX(-100%)',
+          transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+      >
+        {/* Header del drawer */}
+        <div
+          className="flex items-center justify-between px-5 py-4 border-b border-slate-100"
+          style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)' }}
+        >
+          <div className="flex items-center gap-2 text-white">
+            <span className="text-xl">🛡️</span>
+            <span className="font-bold text-sm">Panel Admin</span>
+          </div>
+          <button
+            onClick={() => setDrawerAbierto(false)}
+            className="text-white/70 hover:text-white text-xl font-bold leading-none w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20 transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+        {/* Secciones del drawer */}
+        <nav className="flex-1 overflow-y-auto py-2">
+          <NavItems onSelect={() => setDrawerAbierto(false)} />
+        </nav>
+      </div>
+
+      {/* ── Layout principal ── */}
       <div className="flex gap-6">
-        {}
-        <aside className="w-56 flex-shrink-0">
+        {/* Sidebar solo en desktop */}
+        <aside className="w-56 flex-shrink-0 hidden md:block">
           <nav className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-            {secciones.map(s => (
-              <button
-                key={s.id}
-                onClick={() => setSeccion(s.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3.5 text-left text-sm font-semibold transition-all ${
-                  seccion === s.id
-                    ? colorActiveMap[s.color]
-                    : 'text-slate-600 hover:bg-slate-50 border-l-4 border-transparent'
-                }`}
-              >
-                <span className="text-lg">{s.icon}</span>
-                <span>{s.label}</span>
-              </button>
-            ))}
+            <NavItems />
           </nav>
         </aside>
 
-        {}
+        {/* Contenido */}
         <main className="flex-1 min-w-0">
           {seccion === 'dashboard'  && <SeccionDashboard />}
           {seccion === 'usuarios'   && <SeccionUsuarios />}
@@ -193,12 +252,17 @@ const SeccionUsuarios = () => {
   const [usuarios, setUsuarios] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [modalCrear, setModalCrear] = useState(false);
-  const [modalRol, setModalRol]   = useState(null); 
-  const [busqueda, setBusqueda]   = useState('');
-  const [filtroRol, setFiltroRol] = useState('todos');
-  const [guardando, setGuardando] = useState(false);
-  const [error, setError]         = useState('');
-  const [exito, setExito]         = useState('');
+  const [modalRol, setModalRol]     = useState(null);
+  const [modalEditar, setModalEditar] = useState(null); // { id, nombre, email, rol }
+  const [busqueda, setBusqueda]     = useState('');
+  const [filtroRol, setFiltroRol]   = useState('todos');
+  const [guardando, setGuardando]   = useState(false);
+  const [error, setError]           = useState('');
+  const [exito, setExito]           = useState('');
+
+  const [formEditar, setFormEditar] = useState({
+    nombre: '', email: '', password: '',
+  });
 
   const [formCrear, setFormCrear] = useState({
     nombre: '', email: '', password: '', rol: 'docente',
@@ -231,6 +295,23 @@ const SeccionUsuarios = () => {
       mostrarExito(`✅ Usuario "${formCrear.nombre}" creado exitosamente`);
     } catch (err) {
       setError(err.response?.data?.mensaje || 'Error al crear usuario');
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  const handleEditar = async (e) => {
+    e.preventDefault();
+    setGuardando(true);
+    setError('');
+    try {
+      await API.put(`/admin/usuarios/${modalEditar.id}`, formEditar);
+      setModalEditar(null);
+      setFormEditar({ nombre: '', email: '', password: '' });
+      cargar();
+      mostrarExito(`✅ Usuario "${formEditar.nombre}" actualizado exitosamente`);
+    } catch (err) {
+      setError(err.response?.data?.mensaje || 'Error al actualizar usuario');
     } finally {
       setGuardando(false);
     }
@@ -352,6 +433,17 @@ const SeccionUsuarios = () => {
                     <td className="p-4">
                       <div className="flex gap-2 justify-center">
                         <button
+                          onClick={() => {
+                            setModalEditar({ id: u._id, nombre: u.nombre, email: u.email, rol: u.rol });
+                            setFormEditar({ nombre: u.nombre, email: u.email, password: '' });
+                            setError('');
+                          }}
+                          title="Editar datos del usuario"
+                          className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                        >
+                          ✏️ Editar
+                        </button>
+                        <button
                           onClick={() => setModalRol({ id: u._id, nombre: u.nombre, rolActual: u.rol })}
                           title="Asignar Rol"
                           className="bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
@@ -378,7 +470,54 @@ const SeccionUsuarios = () => {
         </div>
       )}
 
-      {}
+      {/* Modal Editar Usuario */}
+      {modalEditar && (
+        <Modal title={`✏️ Editar Usuario — ${modalEditar.nombre}`} onClose={() => { setModalEditar(null); setError(''); }}>
+          <form onSubmit={handleEditar} className="space-y-4">
+            {error && <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">{error}</div>}
+            <FormField label="Nombre completo" required>
+              <input
+                required
+                value={formEditar.nombre}
+                onChange={e => setFormEditar({ ...formEditar, nombre: e.target.value })}
+                placeholder="Ej: Juan Pérez"
+                className="input-base"
+              />
+            </FormField>
+            <FormField label="Email" required>
+              <input
+                required
+                type="email"
+                value={formEditar.email}
+                onChange={e => setFormEditar({ ...formEditar, email: e.target.value })}
+                placeholder="correo@ejemplo.com"
+                className="input-base"
+              />
+            </FormField>
+            <FormField label="Nueva contraseña (dejar en blanco para no cambiar)">
+              <input
+                type="password"
+                minLength={6}
+                value={formEditar.password}
+                onChange={e => setFormEditar({ ...formEditar, password: e.target.value })}
+                placeholder="Mínimo 6 caracteres"
+                className="input-base"
+              />
+            </FormField>
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-500">
+              <span className="font-semibold text-slate-700">Rol actual:</span>{' '}
+              <span className="capitalize font-bold text-violet-700">{modalEditar.rol}</span>
+              {' '}— Para cambiar el rol usa el botón 🔑 Rol.
+            </div>
+            <div className="flex gap-3 justify-end pt-2">
+              <BtnCancelar onClick={() => { setModalEditar(null); setError(''); }} />
+              <BtnGuardar loading={guardando} label="Guardar Cambios" color="emerald" />
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* Modal Crear */}
       {modalCrear && (
         <Modal title="➕ Crear Nuevo Usuario" onClose={() => { setModalCrear(false); setError(''); }}>
           <form onSubmit={handleCrear} className="space-y-4">
