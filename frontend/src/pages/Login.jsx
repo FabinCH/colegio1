@@ -1,8 +1,9 @@
 
 
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import logoGermanBusch from '../assets/logo_german_busch.png';
 
 const Login = () => {
   const [email, setEmail]       = useState('');
@@ -38,7 +39,9 @@ const Login = () => {
         {}
         <div className="auth-banner">
           <div className="auth-banner-content">
-            <div className="auth-banner-icon-wrap">📋</div>
+            <div className="auth-banner-icon-wrap" style={{ background: 'transparent', boxShadow: 'none', padding: 0 }}>
+              <img src={logoGermanBusch} alt="Logo Unidad Educativa Germán Busch" style={{ width: '140px', height: '140px', objectFit: 'contain', borderRadius: '50%', background: 'white', padding: '8px', boxShadow: '0 4px 24px rgba(0,0,0,0.18)' }} />
+            </div>
             <h2 className="auth-banner-title">Cuaderno Pedagógico</h2>
             <p className="auth-banner-subtitle">Sistema de Gestión Educativa Digital</p>
             <div className="auth-banner-badge">✦ RM 01/2026 ✦</div>
@@ -150,13 +153,8 @@ const Login = () => {
               </button>
             </form>
 
-            <div className="auth-divider">o</div>
-
-            <p className="auth-switch">
-              ¿No tienes cuenta?{' '}
-              <Link to="/register" className="auth-switch-link">
-                Regístrate aquí →
-              </Link>
+            <p style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '1rem', opacity: 0.7 }}>
+              🔐 Acceso restringido — Contacta al administrador para obtener tus credenciales
             </p>
           </div>
         </div>

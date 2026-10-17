@@ -358,7 +358,7 @@ const SeccionUsuarios = () => {
 
   return (
     <div className="space-y-5">
-      <SectionTitle icon="👥" title="Gestionar Usuarios" subtitle="Crear docentes, asignar roles y eliminar usuarios" />
+      <SectionTitle icon="👥" title="Gestionar Usuarios" subtitle="Crear usuarios, asignar roles y entregar credenciales a docentes y directores" />
 
       {}
       {exito && (
@@ -390,7 +390,7 @@ const SeccionUsuarios = () => {
           onClick={() => setModalCrear(true)}
           className="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 transition-colors shadow-sm"
         >
-          ➕ Crear Docente
+          ➕ Crear Usuario
         </button>
       </div>
 

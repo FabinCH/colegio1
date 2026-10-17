@@ -9,7 +9,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
 import Login from './pages/Login';
-import Register from './pages/Register';
+
 import Dashboard from './pages/Dashboard';
 import Estudiantes from './pages/Estudiantes';
 import Materias from './pages/Materias';
@@ -32,7 +32,7 @@ function App() {
               <Routes>
               {}
               <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
+
 
               {}
               <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
